@@ -1,3 +1,16 @@
+- DevOps:
+    - GitLab:
+        href: http://192.168.178.122
+        description: Source control + CI/CD
+        icon: gitlab.png
+        siteMonitor: http://192.168.178.122
+
+    - Shelly Temp Monitor:
+        href: http://192.168.178.194:8081
+        description: Temperature webhook + email alerts
+        icon: home-assistant.png
+        siteMonitor: http://192.168.178.194:8081
+
 - Infrastructure:
     - Portainer:
         href: https://192.168.178.194:9443
