@@ -1,0 +1,6 @@
+# Shared network for all homelab services.
+# Create once: docker network create frontend
+
+networks:
+  frontend:
+    external: true

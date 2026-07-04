@@ -1,0 +1,15 @@
+- resources:
+    cpu: true
+    memory: true
+    disk: /
+    expanded: true
+
+- search:
+    provider: google
+    target: _blank
+
+- datetime:
+    text_size: xl
+    format:
+      timeStyle: short
+      dateStyle: short

@@ -1,0 +1,6 @@
+.env
+*.key
+secrets/
+acme.json
+**/data/
+**/config/*.local.yaml

@@ -1,0 +1,20 @@
+services:
+  homepage:
+    container_name: homepage
+    image: ghcr.io/gethomepage/homepage:latest
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./config:/app/config
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    environment:
+      HOMEPAGE_ALLOWED_HOSTS: "home.kolyachaba.top,192.168.178.194:3000,localhost:3000"
+      PUID: "0"
+      PGID: "0"
+    networks:
+      - frontend
+
+networks:
+  frontend:
+    external: true

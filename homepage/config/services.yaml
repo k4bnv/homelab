@@ -1,0 +1,32 @@
+- Infrastructure:
+    - Portainer:
+        href: https://192.168.178.194:9443
+        description: Container management
+        icon: portainer.png
+        siteMonitor: https://192.168.178.194:9443
+
+    - Uptime Kuma:
+        href: http://192.168.178.194:3001
+        description: Uptime monitoring
+        icon: uptime-kuma.png
+        siteMonitor: http://192.168.178.194:3001
+
+    - Homepage:
+        href: http://192.168.178.194:3000
+        description: This dashboard
+        icon: homepage.png
+        siteMonitor: http://192.168.178.194:3000
+
+- Media:
+    - Lampac:
+        href: http://192.168.178.194:9118
+        description: Media streaming
+        icon: jellyfin.png
+        siteMonitor: http://192.168.178.194:9118
+
+- Security:
+    - Vaultwarden:
+        href: http://192.168.178.194:8080
+        description: Password manager
+        icon: bitwarden.png
+        siteMonitor: http://192.168.178.194:8080
