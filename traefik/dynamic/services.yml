@@ -1,0 +1,81 @@
+http:
+  routers:
+    homepage:
+      rule: "Host(`home.kolyachaba.top`)"
+      entryPoints: [websecure]
+      service: homepage
+      tls:
+        certResolver: cloudflare
+
+    uptime-kuma:
+      rule: "Host(`status.kolyachaba.top`)"
+      entryPoints: [websecure]
+      service: uptime-kuma
+      tls:
+        certResolver: cloudflare
+
+    vaultwarden:
+      rule: "Host(`vault.kolyachaba.top`)"
+      entryPoints: [websecure]
+      service: vaultwarden
+      tls:
+        certResolver: cloudflare
+
+    shelly:
+      rule: "Host(`temp.kolyachaba.top`)"
+      entryPoints: [websecure]
+      service: shelly
+      tls:
+        certResolver: cloudflare
+
+    portainer:
+      rule: "Host(`portainer.kolyachaba.top`)"
+      entryPoints: [websecure]
+      service: portainer
+      tls:
+        certResolver: cloudflare
+
+    gitlab:
+      rule: "Host(`gitlab.kolyachaba.top`)"
+      entryPoints: [websecure]
+      service: gitlab
+      tls:
+        certResolver: cloudflare
+
+    traefik-dashboard:
+      rule: "Host(`traefik.kolyachaba.top`)"
+      entryPoints: [websecure]
+      service: api@internal
+      tls:
+        certResolver: cloudflare
+
+  services:
+    homepage:
+      loadBalancer:
+        servers:
+          - url: "http://homepage:3000"
+
+    uptime-kuma:
+      loadBalancer:
+        servers:
+          - url: "http://uptime-kuma:3001"
+
+    vaultwarden:
+      loadBalancer:
+        servers:
+          - url: "http://vaultwarden:80"
+
+    shelly:
+      loadBalancer:
+        servers:
+          - url: "http://shelly-temp-monitor:8081"
+
+    portainer:
+      loadBalancer:
+        servers:
+          - url: "http://portainer:9000"
+
+    gitlab:
+      loadBalancer:
+        servers:
+          - url: "http://192.168.178.122:80"

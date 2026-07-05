@@ -131,7 +131,7 @@ homelab/
 - [x] GitLab CE (LXC 103)
 - [x] GitLab Runner + CI/CD pipeline
 - [x] Pet project: shelly-temp-monitor
-- [ ] Traefik reverse proxy + HTTPS (`*.kolyachaba.top`)
+- [ ] Traefik reverse proxy + HTTPS (`*.kolyachaba.top`) — [GUIDE.md](traefik/GUIDE.md)
 - [ ] Prometheus + Grafana
 - [ ] RAM upgrade (2×16 GB SO-DIMM)
 - [ ] k3s migration

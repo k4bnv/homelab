@@ -1,0 +1,23 @@
+services:
+  traefik:
+    container_name: traefik
+    image: traefik:v3.3
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./traefik.yml:/etc/traefik/traefik.yml:ro
+      - ./dynamic:/etc/traefik/dynamic:ro
+      - ./acme:/acme
+    environment:
+      - CF_DNS_API_TOKEN=${CF_DNS_API_TOKEN}
+    env_file:
+      - .env
+    networks:
+      - frontend
+
+networks:
+  frontend:
+    external: true

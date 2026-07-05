@@ -1,16 +1,32 @@
-# Traefik — planned
+# Traefik — reverse proxy + HTTPS
 
-Reverse proxy with automatic TLS via Cloudflare DNS challenge.
-
-Subdomains target (`kolyachaba.top`):
+Automatic TLS via **Cloudflare DNS challenge** for `*.kolyachaba.top`.
 
 | Subdomain | Service |
 |-----------|---------|
-| `home.` | Homepage |
-| `status.` | Uptime Kuma |
-| `vault.` | Vaultwarden |
-| `gitlab.` | GitLab CE |
-| `temp.` | Shelly Temp Monitor |
-| `portainer.` | Portainer |
+| `home.kolyachaba.top` | Homepage |
+| `status.kolyachaba.top` | Uptime Kuma |
+| `vault.kolyachaba.top` | Vaultwarden |
+| `temp.kolyachaba.top` | Shelly Temp Monitor |
+| `portainer.kolyachaba.top` | Portainer |
+| `gitlab.kolyachaba.top` | GitLab CE (LXC 103) |
+| `traefik.kolyachaba.top` | Traefik dashboard |
 
-Config will be added here after setup.
+**Full guide:** [GUIDE.md](GUIDE.md)
+
+## Quick deploy
+
+```bash
+cd ~/homelab/traefik
+cp .env.example .env          # edit ACME_EMAIL + CF_DNS_API_TOKEN
+mkdir -p acme && touch acme/acme.json && chmod 600 acme/acme.json
+docker network create frontend 2>/dev/null || true
+docker compose up -d
+```
+
+## Verify
+
+```bash
+docker logs traefik -f
+curl -I https://home.kolyachaba.top
+```
