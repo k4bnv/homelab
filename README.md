@@ -10,31 +10,58 @@ Self-hosted infrastructure on Proxmox VE — Docker, GitLab CI/CD, DevOps portfo
 ```mermaid
 graph TB
     subgraph Internet
-        CF[Cloudflare / Tunnel]
+        USER[User / Recruiter]
+        CF[Cloudflare DNS<br/>*.kolyachaba.top]
     end
 
-    subgraph Proxmox["Proxmox VE 8.2 · homelab · Dell mini PC"]
+    subgraph Router
+        FW[Port 443 → 194]
+    end
+
+    subgraph Proxmox["Proxmox VE 8.2 · Dell mini PC"]
         subgraph CT100["LXC 100 · docker · 192.168.178.194"]
-            TRAEFIK[Traefik]
-            HOMEPAGE[Homepage]
-            UPTIME[Uptime Kuma]
-            VAULT[Vaultwarden]
-            PORTAINER[Portainer]
-            LAMPAC[Lampac]
-            SHELLY[Shelly Temp Monitor]
+            TRAEFIK[Traefik<br/>TLS Let's Encrypt]
             RUNNER[GitLab Runner]
+            subgraph Services["Docker · network frontend"]
+                HOMEPAGE[home.]
+                UPTIME[status.]
+                VAULT[vault.]
+                PORTAINER[portainer.]
+                SHELLY[temp.]
+            end
+            LAMPAC[Lampac :9118]
         end
         CT101["LXC 101 · fileserver"]
-        CT102["LXC 102 · Tunnel"]
+        CT102["LXC 102 · Tunnel<br/>(legacy)"]
         subgraph CT103["LXC 103 · gitlab · 192.168.178.122"]
-            GITLAB[GitLab CE]
+            GITLAB[GitLab CE<br/>gitlab.]
         end
     end
 
-    CF --> CT102
-    CF --> TRAEFIK
-    GITLAB --> RUNNER
-    RUNNER --> SHELLY
+    USER --> CF
+    CF --> FW
+    FW --> TRAEFIK
+    TRAEFIK --> HOMEPAGE
+    TRAEFIK --> UPTIME
+    TRAEFIK --> VAULT
+    TRAEFIK --> PORTAINER
+    TRAEFIK --> SHELLY
+    TRAEFIK --> GITLAB
+    GITLAB -->|CI/CD pipeline| RUNNER
+    RUNNER -->|deploy| SHELLY
+```
+
+### Traffic flow
+
+```
+Internet → Cloudflare DNS → Router :443 → Traefik (TLS)
+  ├── home.kolyachaba.top      → Homepage
+  ├── status.kolyachaba.top    → Uptime Kuma
+  ├── vault.kolyachaba.top     → Vaultwarden
+  ├── portainer.kolyachaba.top → Portainer
+  ├── temp.kolyachaba.top      → Shelly Temp Monitor
+  ├── gitlab.kolyachaba.top    → GitLab CE (LXC 103)
+  └── traefik.kolyachaba.top   → Traefik dashboard
 ```
 
 ## Hardware
