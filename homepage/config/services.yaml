@@ -1,45 +1,51 @@
 - DevOps:
     - GitLab:
-        href: http://192.168.178.122
+        href: https://gitlab.kolyachaba.top
         description: Source control + CI/CD
         icon: gitlab.png
-        siteMonitor: http://192.168.178.122
+        siteMonitor: https://gitlab.kolyachaba.top
 
     - Shelly Temp Monitor:
-        href: http://192.168.178.194:8081
+        href: https://temp.kolyachaba.top
         description: Temperature webhook + email alerts
         icon: home-assistant.png
-        siteMonitor: http://192.168.178.194:8081
+        siteMonitor: https://temp.kolyachaba.top
+
+    - Traefik:
+        href: https://traefik.kolyachaba.top
+        description: Reverse proxy dashboard
+        icon: traefik.png
+        siteMonitor: https://traefik.kolyachaba.top
 
 - Infrastructure:
     - Portainer:
-        href: https://192.168.178.194:9443
+        href: https://portainer.kolyachaba.top
         description: Container management
         icon: portainer.png
-        siteMonitor: https://192.168.178.194:9443
+        siteMonitor: https://portainer.kolyachaba.top
 
     - Uptime Kuma:
-        href: http://192.168.178.194:3001
+        href: https://status.kolyachaba.top
         description: Uptime monitoring
         icon: uptime-kuma.png
-        siteMonitor: http://192.168.178.194:3001
+        siteMonitor: https://status.kolyachaba.top
 
     - Homepage:
-        href: http://192.168.178.194:3000
+        href: https://home.kolyachaba.top
         description: This dashboard
         icon: homepage.png
-        siteMonitor: http://192.168.178.194:3000
+        siteMonitor: https://home.kolyachaba.top
 
 - Media:
     - Lampac:
         href: http://192.168.178.194:9118
-        description: Media streaming
+        description: Media streaming (direct)
         icon: jellyfin.png
         siteMonitor: http://192.168.178.194:9118
 
 - Security:
     - Vaultwarden:
-        href: http://192.168.178.194:8080
+        href: https://vault.kolyachaba.top
         description: Password manager
         icon: bitwarden.png
-        siteMonitor: http://192.168.178.194:8080
+        siteMonitor: https://vault.kolyachaba.top

@@ -15,7 +15,7 @@ graph TB
 
     subgraph Proxmox["Proxmox VE 8.2 · homelab · Dell mini PC"]
         subgraph CT100["LXC 100 · docker · 192.168.178.194"]
-            TRAEFIK[Traefik — planned]
+            TRAEFIK[Traefik]
             HOMEPAGE[Homepage]
             UPTIME[Uptime Kuma]
             VAULT[Vaultwarden]
@@ -60,13 +60,14 @@ graph TB
 
 | Service | Purpose | URL |
 |---------|---------|-----|
-| [Homepage](homepage/) | Dashboard for all services | http://192.168.178.194:3000 |
-| [Uptime Kuma](uptime-kuma/) | Uptime monitoring + alerts | http://192.168.178.194:3001 |
-| [Vaultwarden](vaultwarden/) | Password manager | http://192.168.178.194:8080 |
-| [Portainer](portainer/) | Container management | https://192.168.178.194:9443 |
+| [Homepage](homepage/) | Dashboard for all services | https://home.kolyachaba.top |
+| [Uptime Kuma](uptime-kuma/) | Uptime monitoring + alerts | https://status.kolyachaba.top |
+| [Vaultwarden](vaultwarden/) | Password manager | https://vault.kolyachaba.top |
+| [Portainer](portainer/) | Container management | https://portainer.kolyachaba.top |
+| [Traefik](traefik/) | Reverse proxy + TLS | https://traefik.kolyachaba.top |
 | [Lampac](lampac/) | Media streaming | http://192.168.178.194:9118 |
-| [Shelly Temp Monitor](https://github.com/k4bnv/shelly-temp-monitor) | IoT webhook + email alerts | http://192.168.178.194:8081 |
-| GitLab CE | Source control + CI/CD | http://192.168.178.122 |
+| [Shelly Temp Monitor](https://github.com/k4bnv/shelly-temp-monitor) | IoT webhook + email alerts | https://temp.kolyachaba.top |
+| GitLab CE | Source control + CI/CD | https://gitlab.kolyachaba.top |
 
 ## CI/CD
 
@@ -103,12 +104,13 @@ cd ../vaultwarden && docker compose up -d
 
 | Name | URL |
 |------|-----|
-| Portainer | https://192.168.178.194:9443 |
-| Homepage | http://192.168.178.194:3000 |
-| Vaultwarden | http://192.168.178.194:8080 |
+| Homepage | https://home.kolyachaba.top |
+| Portainer | https://portainer.kolyachaba.top |
+| Vaultwarden | https://vault.kolyachaba.top |
+| Shelly Monitor | https://temp.kolyachaba.top |
+| GitLab | https://gitlab.kolyachaba.top |
+| Traefik | https://traefik.kolyachaba.top |
 | Lampac | http://192.168.178.194:9118 |
-| Shelly Monitor | http://192.168.178.194:8081 |
-| GitLab | http://192.168.178.122 |
 
 ## Repo Structure
 
@@ -119,7 +121,7 @@ homelab/
 ├── vaultwarden/       # Passwords
 ├── portainer/         # Container UI
 ├── lampac/            # Media
-├── traefik/           # Reverse proxy (planned)
+├── traefik/           # Reverse proxy + TLS
 ├── scripts/deploy.sh
 └── README.md
 ```
@@ -131,7 +133,7 @@ homelab/
 - [x] GitLab CE (LXC 103)
 - [x] GitLab Runner + CI/CD pipeline
 - [x] Pet project: shelly-temp-monitor
-- [ ] Traefik reverse proxy + HTTPS (`*.kolyachaba.top`) — [GUIDE.md](traefik/GUIDE.md)
+- [x] Traefik reverse proxy + HTTPS (`*.kolyachaba.top`) — [GUIDE.md](traefik/GUIDE.md)
 - [ ] Prometheus + Grafana
 - [ ] RAM upgrade (2×16 GB SO-DIMM)
 - [ ] k3s migration
