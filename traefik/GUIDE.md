@@ -216,6 +216,11 @@ https://temp.kolyachaba.top/webhook?temp={{temperature}}&device=bedroom
 
 ## Troubleshooting
 
+### `client version 1.24 is too old` (Docker API)
+- Новый Docker требует API 1.40+
+- **Fix:** docker provider убран — роуты только через `dynamic/services.yml` (file provider)
+- Перезапуск: `docker compose up -d --force-recreate`
+
 ### `unable to obtain ACME certificate`
 - Проверь `CF_DNS_API_TOKEN` — права DNS Edit
 - Email в `traefik.yml` должен быть валидным
