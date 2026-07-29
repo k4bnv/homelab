@@ -3,6 +3,7 @@ from __future__ import annotations
 import logging
 import threading
 import time
+from datetime import datetime, timezone
 
 import uvicorn
 
@@ -37,8 +38,19 @@ def run_scheduler(
         for symbol in settings.symbol_list:
             try:
                 bet_engine.run_symbol(db, client, settings, symbol)
-            except Exception:
+            except Exception as exc:
                 log.exception("Failed to process %s", symbol)
+                # bet_engine.run_symbol normally writes its own activity_log
+                # row; if it blew up before reaching that point (network
+                # error, empty candles, etc.) the dashboard would otherwise
+                # show nothing for this cycle at all.
+                db.log_activity(
+                    ts=datetime.now(timezone.utc).isoformat(),
+                    symbol=symbol,
+                    bias_label="Error",
+                    bias_score=0,
+                    message=f"cycle failed: {type(exc).__name__}: {exc}",
+                )
 
 
 def main() -> None:
