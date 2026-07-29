@@ -13,8 +13,8 @@ from app.signal import Bias, evaluate_bias
 
 log = logging.getLogger("okx_options_bot.bet_engine")
 
-FILL_POLL_ATTEMPTS = 5
-FILL_POLL_DELAY_SECONDS = 0.3
+FILL_POLL_ATTEMPTS = 20
+FILL_POLL_DELAY_SECONDS = 1.0
 
 # Event Contracts settle in USDT and always require isolated margin mode
 # plus the speedBump flag for non-post_only orders - these are fixed
@@ -52,14 +52,27 @@ def build_technical_snapshot(
     )
 
 
-def _wait_for_fill(client: OKXClient, inst_id: str, ord_id: str) -> dict | None:
+def _wait_for_fill(client: OKXClient, inst_id: str, ord_id: str) -> tuple[dict | None, dict | None]:
+    """Polls an order until it fills. Returns (filled_order, last_seen_order) -
+    filled_order is None on timeout, but last_seen_order (if any) is still
+    returned so callers can log the actual last-known state instead of a
+    generic timeout message."""
+    last_seen = None
     for _ in range(FILL_POLL_ATTEMPTS):
-        order = client.get_order(inst_id, ord_id)
-        if order and order.get("state") in ("filled", "partially_filled"):
-            if float(order.get("accFillSz", 0) or 0) > 0:
-                return order
+        last_seen = client.get_order(inst_id, ord_id)
+        if last_seen and last_seen.get("state") in ("filled", "partially_filled"):
+            if float(last_seen.get("accFillSz", 0) or 0) > 0:
+                return last_seen, last_seen
         time.sleep(FILL_POLL_DELAY_SECONDS)
-    return None
+    return None, last_seen
+
+
+def _describe_unfilled(last_seen: dict | None) -> str:
+    if last_seen is None:
+        return "no order data returned"
+    state = last_seen.get("state", "unknown")
+    acc_fill_sz = last_seen.get("accFillSz", "0")
+    return f"last state={state}, accFillSz={acc_fill_sz}"
 
 
 def _skip(message: str) -> str:
@@ -158,9 +171,14 @@ def _open_new_bet(
         return _skip(f"entry order rejected for {inst_id}: {ack.get('sMsg')}")
 
     ord_id = ack.get("ordId")
-    filled = _wait_for_fill(client, inst_id, ord_id) if ord_id else None
+    if not ord_id:
+        return _skip(f"entry order for {inst_id} was accepted but returned no ordId")
+    filled, last_seen = _wait_for_fill(client, inst_id, ord_id)
     if filled is None:
-        return _skip(f"entry order {ord_id} for {inst_id} did not fill in time")
+        return _skip(
+            f"entry order {ord_id} for {inst_id} did not fill in time "
+            f"({_describe_unfilled(last_seen)})"
+        )
 
     entry_price = float(filled.get("avgPx") or 0)
     entry_sz = float(filled.get("accFillSz") or 0)

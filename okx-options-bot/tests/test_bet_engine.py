@@ -201,7 +201,9 @@ def test_open_new_bet_order_rejected_skips(db, settings):
     assert db.get_open_bet("BTC") is None
 
 
-def test_open_new_bet_never_fills_skips(db, settings):
+def test_open_new_bet_never_fills_skips(db, settings, monkeypatch):
+    monkeypatch.setattr(bet_engine, "FILL_POLL_ATTEMPTS", 2)
+    monkeypatch.setattr(bet_engine, "FILL_POLL_DELAY_SECONDS", 0.01)
     now_ms = bet_engine.time.time() * 1000
     client = FakeClient(markets=[market(exp_time=now_ms + 5 * 60_000)], order_fills={})
     bias = Bias(label="Bullish", score=2, reasons=[])
