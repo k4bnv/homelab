@@ -24,14 +24,21 @@ class FakeClient:
         self.fills = fills if fills is not None else []
         self.authenticated = authenticated
         self.placed_orders = []
+        self.cancelled_orders = []
 
     def get_event_markets(self, series_id, event_id=None, inst_id=None, state=None):
         return self.markets
 
-    def place_market_order(self, inst_id, side, sz, td_mode="cash", outcome=None, speed_bump=None):
-        self.placed_orders.append((inst_id, side, sz, td_mode, outcome, speed_bump))
+    def place_order(
+        self, inst_id, side, sz, ord_type="market", td_mode="cash", px=None, outcome=None, speed_bump=None
+    ):
+        self.placed_orders.append((inst_id, side, sz, ord_type, td_mode, px, outcome, speed_bump))
         key = (inst_id, side)
         return self.order_acks.get(key, {"sCode": "0", "ordId": f"ord-{inst_id}-{side}"})
+
+    def cancel_order(self, inst_id, ord_id):
+        self.cancelled_orders.append((inst_id, ord_id))
+        return {"sCode": "0"}
 
     def get_order(self, inst_id, ord_id):
         return self.order_fills.get(ord_id)
@@ -139,7 +146,9 @@ def test_open_new_bet_bullish_buys_yes(db, settings):
     assert open_bet["inst_id"] == INST_ID
     assert open_bet["contracts"] == pytest.approx(9.09)
     assert open_bet["stake_usd"] == pytest.approx(0.55 * 9.09)
-    assert (INST_ID, "buy", "5.0", "isolated", "yes", "1") in client.placed_orders
+    assert (
+        INST_ID, "buy", "5", "limit", "isolated", "0.99", "yes", "1"
+    ) in client.placed_orders
 
 
 def test_open_new_bet_bearish_buys_no(db, settings):
@@ -156,7 +165,9 @@ def test_open_new_bet_bearish_buys_no(db, settings):
 
     open_bet = db.get_open_bet("BTC")
     assert open_bet["direction"] == "DOWN"
-    assert (INST_ID, "buy", "5.0", "isolated", "no", "1") in client.placed_orders
+    assert (
+        INST_ID, "buy", "5", "limit", "isolated", "0.99", "no", "1"
+    ) in client.placed_orders
 
 
 def test_open_new_bet_neutral_does_nothing(db, settings):
@@ -201,7 +212,7 @@ def test_open_new_bet_order_rejected_skips(db, settings):
     assert db.get_open_bet("BTC") is None
 
 
-def test_open_new_bet_never_fills_skips(db, settings, monkeypatch):
+def test_open_new_bet_never_fills_cancels_and_skips(db, settings, monkeypatch):
     monkeypatch.setattr(bet_engine, "FILL_POLL_ATTEMPTS", 2)
     monkeypatch.setattr(bet_engine, "FILL_POLL_DELAY_SECONDS", 0.01)
     now_ms = bet_engine.time.time() * 1000
@@ -211,6 +222,19 @@ def test_open_new_bet_never_fills_skips(db, settings, monkeypatch):
     bet_engine._open_new_bet(db, settings, client, "BTC", tech(), bias)
 
     assert db.get_open_bet("BTC") is None
+    assert client.cancelled_orders == [(INST_ID, f"ord-{INST_ID}-buy")]
+
+
+def test_open_new_bet_stake_too_small_for_one_contract_skips(db):
+    settings = Settings(stake_usd=0.5)  # < limit price 0.99, can't buy 1 contract
+    now_ms = bet_engine.time.time() * 1000
+    client = FakeClient(markets=[market(exp_time=now_ms + 5 * 60_000)])
+    bias = Bias(label="Bullish", score=2, reasons=[])
+
+    bet_engine._open_new_bet(db, settings, client, "BTC", tech(), bias)
+
+    assert db.get_open_bet("BTC") is None
+    assert client.placed_orders == []
 
 
 def test_open_new_bet_uses_per_symbol_stake(db, settings):
@@ -226,7 +250,9 @@ def test_open_new_bet_uses_per_symbol_stake(db, settings):
 
     bet_engine._open_new_bet(db, settings, client, "BTC", tech(), bias)
 
-    assert (INST_ID, "buy", "20.0", "isolated", "yes", "1") in client.placed_orders
+    assert (
+        INST_ID, "buy", "20", "limit", "isolated", "0.99", "yes", "1"
+    ) in client.placed_orders
 
 
 # ---------------------------------------------------------------------------

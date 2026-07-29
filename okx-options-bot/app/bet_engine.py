@@ -13,7 +13,7 @@ from app.signal import Bias, evaluate_bias
 
 log = logging.getLogger("okx_options_bot.bet_engine")
 
-FILL_POLL_ATTEMPTS = 20
+FILL_POLL_ATTEMPTS = 60
 FILL_POLL_DELAY_SECONDS = 1.0
 
 # Event Contracts settle in USDT and always require isolated margin mode
@@ -21,6 +21,15 @@ FILL_POLL_DELAY_SECONDS = 1.0
 # protocol requirements, not configurable trading preferences.
 EVENT_TD_MODE = "isolated"
 EVENT_SPEED_BUMP = "1"
+
+# Event Contract order books are often thin/empty on the demo account -
+# market orders get instantly canceled by OKX's slippage protection when
+# there's no resting liquidity to match against ("price limit" cancel,
+# confirmed via cancelSourceReason). A limit order at an aggressive price
+# (valid range is 0.01-0.99) is accepted and rests in the book instead,
+# giving it a chance to fill if a counterparty shows up before we give up
+# and cancel it ourselves.
+EVENT_LIMIT_PRICE = "0.99"
 
 # Settlement fill subType codes observed on OKX Event Contracts.
 SETTLEMENT_WIN_SUBTYPE = "414"
@@ -159,11 +168,21 @@ def _open_new_bet(
     outcome = "yes" if bias.label == "Bullish" else "no"
     stake = settings.stake_for(symbol)
 
-    ack = client.place_market_order(
+    limit_price = float(EVENT_LIMIT_PRICE)
+    contracts = int(stake // limit_price)
+    if contracts < 1:
+        return _skip(
+            f"stake ${stake:.2f} too small for one contract at limit price "
+            f"{EVENT_LIMIT_PRICE}, skipping bet"
+        )
+
+    ack = client.place_order(
         inst_id,
         side="buy",
-        sz=str(stake),
+        sz=str(contracts),
+        ord_type="limit",
         td_mode=EVENT_TD_MODE,
+        px=EVENT_LIMIT_PRICE,
         outcome=outcome,
         speed_bump=EVENT_SPEED_BUMP,
     )
@@ -175,8 +194,12 @@ def _open_new_bet(
         return _skip(f"entry order for {inst_id} was accepted but returned no ordId")
     filled, last_seen = _wait_for_fill(client, inst_id, ord_id)
     if filled is None:
+        try:
+            client.cancel_order(inst_id, ord_id)
+        except Exception:
+            log.exception("Failed to cancel unfilled order %s for %s", ord_id, inst_id)
         return _skip(
-            f"entry order {ord_id} for {inst_id} did not fill in time "
+            f"entry order {ord_id} for {inst_id} did not fill in time, canceled "
             f"({_describe_unfilled(last_seen)})"
         )
 

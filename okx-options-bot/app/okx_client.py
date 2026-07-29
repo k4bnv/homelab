@@ -117,20 +117,22 @@ class OKXClient:
         data = self._get("/api/v5/public/mark-price", {"instType": inst_type, "instId": inst_id})
         return data[0] if data else None
 
-    def place_market_order(
+    def place_order(
         self,
         inst_id: str,
         side: str,
         sz: str,
+        ord_type: str = "market",
         td_mode: str = "cash",
+        px: str | None = None,
         outcome: str | None = None,
         speed_bump: str | None = None,
     ) -> dict:
-        """Places a market order. `side` is 'buy' or 'sell'.
+        """Places an order. `side` is 'buy' or 'sell'.
 
-        `outcome` ("yes"/"no") and `speed_bump` ("1") are only used for
-        EVENTS (event contract) orders - omitted entirely for other
-        instrument types.
+        `px` is required when `ord_type` is 'limit'/'post_only'. `outcome`
+        ("yes"/"no") and `speed_bump` ("1") are only used for EVENTS (event
+        contract) orders - omitted entirely for other instrument types.
 
         Returns the order ack (contains ordId, sCode, sMsg) - sCode == "0"
         means OKX accepted the order, it does not by itself mean filled.
@@ -139,14 +141,20 @@ class OKXClient:
             "instId": inst_id,
             "tdMode": td_mode,
             "side": side,
-            "ordType": "market",
+            "ordType": ord_type,
             "sz": sz,
         }
+        if px is not None:
+            body["px"] = px
         if outcome is not None:
             body["outcome"] = outcome
         if speed_bump is not None:
             body["speedBump"] = speed_bump
         data = self._post("/api/v5/trade/order", body)
+        return data[0] if data else {}
+
+    def cancel_order(self, inst_id: str, ord_id: str) -> dict:
+        data = self._post("/api/v5/trade/cancel-order", {"instId": inst_id, "ordId": ord_id})
         return data[0] if data else {}
 
     def get_order(self, inst_id: str, ord_id: str) -> dict | None:

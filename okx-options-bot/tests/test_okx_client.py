@@ -175,7 +175,7 @@ def test_non_demo_client_has_no_simulated_trading_header():
 
 
 @respx.mock
-def test_place_market_order_sends_signed_post_with_demo_header():
+def test_place_order_sends_signed_post_with_demo_header():
     route = respx.post(f"{BASE_URL}/api/v5/trade/order").mock(
         return_value=httpx.Response(
             200,
@@ -189,7 +189,7 @@ def test_place_market_order_sends_signed_post_with_demo_header():
     client = OKXClient(
         BASE_URL, api_key="key", api_secret="secret", api_passphrase="phrase", demo=True
     )
-    ack = client.place_market_order("BTC-USD-991231-60000-C", side="buy", sz="0.5")
+    ack = client.place_order("BTC-USD-991231-60000-C", side="buy", sz="0.5")
 
     assert ack == {"ordId": "12345", "sCode": "0", "sMsg": ""}
     request = route.calls.last.request
@@ -209,13 +209,13 @@ def test_place_market_order_sends_signed_post_with_demo_header():
 
 
 @respx.mock
-def test_place_market_order_raises_on_top_level_error():
+def test_place_order_raises_on_top_level_error():
     respx.post(f"{BASE_URL}/api/v5/trade/order").mock(
         return_value=httpx.Response(200, json={"code": "50001", "msg": "auth failed", "data": []})
     )
     client = OKXClient(BASE_URL, api_key="key", api_secret="secret", api_passphrase="phrase")
     with pytest.raises(OKXAPIError):
-        client.place_market_order("BTC-USD-991231-60000-C", side="buy", sz="0.5")
+        client.place_order("BTC-USD-991231-60000-C", side="buy", sz="0.5")
 
 
 @respx.mock
@@ -237,14 +237,14 @@ def test_get_order_returns_first_item():
 
 
 @respx.mock
-def test_place_market_order_includes_outcome_and_speed_bump_for_events():
+def test_place_order_includes_outcome_and_speed_bump_for_events():
     route = respx.post(f"{BASE_URL}/api/v5/trade/order").mock(
         return_value=httpx.Response(
             200, json={"code": "0", "msg": "", "data": [{"ordId": "1", "sCode": "0"}]}
         )
     )
     client = OKXClient(BASE_URL, api_key="key", api_secret="secret", api_passphrase="phrase")
-    client.place_market_order(
+    client.place_order(
         "BTC-UPDOWN-15MIN-260729-1800-1815",
         side="buy",
         sz="5",
@@ -264,6 +264,47 @@ def test_place_market_order_includes_outcome_and_speed_bump_for_events():
         "outcome": "yes",
         "speedBump": "1",
     }
+
+
+@respx.mock
+def test_place_order_limit_includes_px():
+    route = respx.post(f"{BASE_URL}/api/v5/trade/order").mock(
+        return_value=httpx.Response(
+            200, json={"code": "0", "msg": "", "data": [{"ordId": "1", "sCode": "0"}]}
+        )
+    )
+    client = OKXClient(BASE_URL, api_key="key", api_secret="secret", api_passphrase="phrase")
+    client.place_order(
+        "BTC-UPDOWN-15MIN-260729-1800-1815",
+        side="buy",
+        sz="5",
+        ord_type="limit",
+        td_mode="isolated",
+        px="0.99",
+        outcome="yes",
+        speed_bump="1",
+    )
+    import json as _json
+
+    body = _json.loads(route.calls.last.request.content)
+    assert body["ordType"] == "limit"
+    assert body["px"] == "0.99"
+
+
+@respx.mock
+def test_cancel_order_sends_signed_post():
+    route = respx.post(f"{BASE_URL}/api/v5/trade/cancel-order").mock(
+        return_value=httpx.Response(
+            200, json={"code": "0", "msg": "", "data": [{"ordId": "1", "sCode": "0"}]}
+        )
+    )
+    client = OKXClient(BASE_URL, api_key="key", api_secret="secret", api_passphrase="phrase")
+    result = client.cancel_order("BTC-UPDOWN-15MIN-260729-1800-1815", "1")
+    assert result == {"ordId": "1", "sCode": "0"}
+    import json as _json
+
+    body = _json.loads(route.calls.last.request.content)
+    assert body == {"instId": "BTC-UPDOWN-15MIN-260729-1800-1815", "ordId": "1"}
 
 
 @respx.mock
