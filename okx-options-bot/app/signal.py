@@ -53,9 +53,9 @@ def evaluate_bias(tech: TechnicalSnapshot, opts: OptionsMetrics | None) -> Bias:
             score += 1
             reasons.append(f"25d call skew elevated ({opts.iv_skew_25d:.2%})")
 
-    if score >= 2:
+    if score >= 1:
         label = "Bullish"
-    elif score <= -2:
+    elif score <= -1:
         label = "Bearish"
     else:
         label = "Neutral"

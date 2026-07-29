@@ -60,3 +60,24 @@ def test_neutral_with_mixed_signals():
     opts = make_opts(pcr=1.5, skew=None)
     bias = evaluate_bias(tech, opts)
     assert bias.label == "Neutral"
+
+
+def test_bullish_at_score_one():
+    tech = make_tech(rsi14=25, macd_histogram=None)
+    bias = evaluate_bias(tech, None)
+    assert bias.score == 1
+    assert bias.label == "Bullish"
+
+
+def test_bearish_at_score_negative_one():
+    tech = make_tech(rsi14=80, macd_histogram=None)
+    bias = evaluate_bias(tech, None)
+    assert bias.score == -1
+    assert bias.label == "Bearish"
+
+
+def test_neutral_stays_neutral_at_score_zero():
+    tech = make_tech(rsi14=None, macd_histogram=None)
+    bias = evaluate_bias(tech, None)
+    assert bias.score == 0
+    assert bias.label == "Neutral"
