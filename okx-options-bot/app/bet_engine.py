@@ -71,14 +71,7 @@ def select_current_event_market(client: OKXClient, symbol: str) -> dict | None:
     return min(candidates, key=lambda m: float(m.get("expTime") or 0))
 
 
-def _close_open_bet(db: BetsDB, client: OKXClient, symbol: str, spot: float) -> str:
-    open_bet = db.get_open_bet(symbol)
-    if open_bet is None:
-        return "no open position"
-
-    if not client.authenticated:
-        return _skip(f"OKX API credentials not configured, cannot settle bet #{open_bet['id']}")
-
+def _settle_bet(db: BetsDB, client: OKXClient, symbol: str, spot: float, open_bet) -> str:
     inst_id = open_bet["inst_id"]
     series_id = f"{symbol}-UPDOWN-15MIN"
     try:
@@ -116,6 +109,23 @@ def _close_open_bet(db: BetsDB, client: OKXClient, symbol: str, spot: float) -> 
     )
     log.info("Closed bet #%s: %s", open_bet["id"], message)
     return message
+
+
+def _close_open_bet(db: BetsDB, client: OKXClient, symbol: str, spot: float) -> str:
+    """Settles every currently-open bet for this symbol, not just the most
+    recent one - normally there's at most one, but a lagged settlement
+    combined with a since-fixed bug could leave more than one open, and
+    those still need to be checked/closed rather than orphaned forever."""
+    open_bets = db.list_open_bets(symbol)
+    if not open_bets:
+        return "no open position"
+
+    if not client.authenticated:
+        return _skip(
+            f"OKX API credentials not configured, cannot settle {len(open_bets)} open bet(s)"
+        )
+
+    return " | ".join(_settle_bet(db, client, symbol, spot, bet) for bet in open_bets)
 
 
 def _open_new_bet(

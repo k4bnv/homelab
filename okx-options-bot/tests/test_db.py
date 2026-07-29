@@ -49,6 +49,33 @@ def test_get_open_bet_is_symbol_scoped(db):
     assert db.get_open_bet("ETH") is None
 
 
+def test_list_open_bets_returns_empty_when_none(db):
+    assert db.list_open_bets("BTC") == []
+
+
+def test_list_open_bets_returns_all_open_oldest_first(db):
+    id_a = _open(db, inst_id="a")
+    id_b = _open(db, inst_id="b")
+    rows = db.list_open_bets("BTC")
+    assert [r["id"] for r in rows] == [id_a, id_b]
+
+
+def test_list_open_bets_excludes_closed(db):
+    id_a = _open(db, inst_id="a")
+    id_b = _open(db, inst_id="b")
+    db.close_bet(
+        id_a,
+        closed_at="t",
+        exit_price=1.0,
+        exit_spot=60000,
+        exit_value_usd=10.0,
+        pnl_usd=5.0,
+        result="WIN",
+    )
+    rows = db.list_open_bets("BTC")
+    assert [r["id"] for r in rows] == [id_b]
+
+
 def test_close_bet_updates_status_and_result(db):
     bet_id = _open(db)
     db.close_bet(

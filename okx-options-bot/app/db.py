@@ -110,6 +110,17 @@ class BetsDB:
         )
         return cur.fetchone()
 
+    def list_open_bets(self, symbol: str) -> list[sqlite3.Row]:
+        """All open bets for a symbol, oldest first. Normally at most one,
+        but settlement can lag a cycle, so more than one can exist
+        transiently - callers should settle all of them, not just the
+        most recent (see get_open_bet)."""
+        cur = self._conn.execute(
+            "SELECT * FROM bets WHERE symbol = ? AND status = 'OPEN' ORDER BY id ASC",
+            (symbol,),
+        )
+        return cur.fetchall()
+
     def close_bet(
         self,
         bet_id: int,

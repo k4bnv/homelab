@@ -271,6 +271,43 @@ def test_close_open_bet_down_direction_wins_on_outcome_2(db):
     assert closed["result"] == "WIN"
 
 
+def test_close_open_bet_settles_multiple_orphaned_open_bets(db):
+    # Simulates the pre-fix bug: two bets ended up open at once for the
+    # same symbol. Both must get checked/closed, not just the newest.
+    _open(db, inst_id="OLD-INST", direction="UP", stake=5.0)
+    _open(db, inst_id="NEW-INST", direction="DOWN", stake=5.0)
+    client = FakeClient(
+        markets_by_inst={
+            "OLD-INST": settled_market("OLD-INST", "1"),  # UP won -> matches -> WIN
+            "NEW-INST": settled_market("NEW-INST", "1"),  # UP won -> DOWN bet -> LOSS
+        }
+    )
+
+    bet_engine._close_open_bet(db, client, "BTC", 60000)
+
+    assert db.get_open_bet("BTC") is None
+    bets = {b["inst_id"]: b for b in db.list_bets(limit=10)}
+    assert bets["OLD-INST"]["result"] == "WIN"
+    assert bets["NEW-INST"]["result"] == "LOSS"
+
+
+def test_close_open_bet_settles_the_ones_it_can_leaves_rest_open(db):
+    _open(db, inst_id="OLD-INST", direction="UP", stake=5.0)
+    _open(db, inst_id="NEW-INST", direction="DOWN", stake=5.0)
+    client = FakeClient(
+        markets_by_inst={
+            "OLD-INST": settled_market("OLD-INST", "1"),
+            # NEW-INST intentionally missing -> not settled yet
+        }
+    )
+
+    bet_engine._close_open_bet(db, client, "BTC", 60000)
+
+    still_open = db.list_open_bets("BTC")
+    assert len(still_open) == 1
+    assert still_open[0]["inst_id"] == "NEW-INST"
+
+
 def test_close_open_bet_fetch_failure_leaves_open(db):
     _open(db)
 
