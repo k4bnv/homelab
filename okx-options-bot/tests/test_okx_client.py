@@ -63,3 +63,38 @@ def test_authenticated_requests_include_signed_headers():
     assert sent_headers["OK-ACCESS-PASSPHRASE"] == "phrase"
     assert sent_headers["OK-ACCESS-SIGN"]
     assert sent_headers["OK-ACCESS-TIMESTAMP"].endswith("Z")
+
+
+@respx.mock
+def test_get_instruments_returns_data():
+    respx.get(f"{BASE_URL}/api/v5/public/instruments").mock(
+        return_value=httpx.Response(
+            200,
+            json={"code": "0", "msg": "", "data": [{"instId": "BTC-USD-991231-60000-C"}]},
+        )
+    )
+    client = OKXClient(BASE_URL)
+    instruments = client.get_instruments("BTC-USD")
+    assert instruments == [{"instId": "BTC-USD-991231-60000-C"}]
+
+
+@respx.mock
+def test_get_ticker_returns_first_item():
+    respx.get(f"{BASE_URL}/api/v5/market/ticker").mock(
+        return_value=httpx.Response(
+            200,
+            json={"code": "0", "msg": "", "data": [{"instId": "BTC-USDT", "last": "60000"}]},
+        )
+    )
+    client = OKXClient(BASE_URL)
+    ticker = client.get_ticker("BTC-USDT")
+    assert ticker == {"instId": "BTC-USDT", "last": "60000"}
+
+
+@respx.mock
+def test_get_ticker_returns_none_when_empty():
+    respx.get(f"{BASE_URL}/api/v5/market/ticker").mock(
+        return_value=httpx.Response(200, json={"code": "0", "msg": "", "data": []})
+    )
+    client = OKXClient(BASE_URL)
+    assert client.get_ticker("BTC-USDT") is None

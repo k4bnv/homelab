@@ -59,6 +59,13 @@ def _closest(snaps: list[OptionSnapshot], key_fn, target: float) -> OptionSnapsh
     return min(snaps, key=lambda s: abs(key_fn(s) - target))
 
 
+def select_atm_contract(
+    snapshots: list[OptionSnapshot], expiry: str, opt_type: str, spot: float
+) -> OptionSnapshot | None:
+    candidates = [s for s in snapshots if s.expiry == expiry and s.opt_type == opt_type]
+    return _closest(candidates, lambda s: s.strike, spot)
+
+
 def compute_metrics(
     uly: str, snapshots: list[OptionSnapshot], spot: float
 ) -> OptionsMetrics | None:

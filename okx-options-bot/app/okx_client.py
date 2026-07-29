@@ -84,6 +84,13 @@ class OKXClient:
     def get_open_interest(self, uly: str, inst_type: str = "OPTION") -> list[dict]:
         return self._get("/api/v5/public/open-interest", {"instType": inst_type, "uly": uly})
 
+    def get_instruments(self, uly: str, inst_type: str = "OPTION") -> list[dict]:
+        return self._get("/api/v5/public/instruments", {"instType": inst_type, "uly": uly})
+
+    def get_ticker(self, inst_id: str) -> dict | None:
+        data = self._get("/api/v5/market/ticker", {"instId": inst_id})
+        return data[0] if data else None
+
     def close(self) -> None:
         self._client.close()
 

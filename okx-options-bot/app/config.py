@@ -14,8 +14,12 @@ class Settings(BaseSettings):
     candle_limit: int = 150
     poll_interval_seconds: int = 900
 
-    telegram_bot_token: str = ""
-    telegram_chat_id: str = ""
+    stake_usd: float = 5.0
+    starting_bankroll: float = 1000.0
+    db_path: str = "./data/bets.db"
+
+    http_host: str = "0.0.0.0"
+    http_port: int = 8000
 
     log_level: str = "INFO"
 

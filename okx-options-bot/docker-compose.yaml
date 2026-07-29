@@ -5,3 +5,10 @@ services:
     restart: unless-stopped
     env_file:
       - .env
+    ports:
+      - "8000:8000"
+    volumes:
+      - okx_options_bot_data:/app/data
+
+volumes:
+  okx_options_bot_data:

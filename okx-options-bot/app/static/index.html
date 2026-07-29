@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>OKX Options Bot — статистика</title>
+<link rel="stylesheet" href="/static/style.css" />
+</head>
+<body>
+  <header>
+    <h1>OKX Options Bot</h1>
+    <div class="subtitle">Paper-trading статистика по опционам BTC/ETH · ставка $<span id="stake">-</span> · обновляется автоматически</div>
+  </header>
+
+  <section class="tiles" id="tiles"></section>
+
+  <section class="panel">
+    <h2>Equity curve</h2>
+    <canvas id="equity-chart" height="220"></canvas>
+  </section>
+
+  <section class="panel" id="by-symbol-panel">
+    <h2>По инструментам</h2>
+    <div class="tiles" id="by-symbol"></div>
+  </section>
+
+  <section class="panel">
+    <h2>Последние ставки</h2>
+    <div class="table-wrap">
+      <table id="bets-table">
+        <thead>
+          <tr>
+            <th>Время</th>
+            <th>Символ</th>
+            <th>Направление</th>
+            <th>Инструмент</th>
+            <th>Вход</th>
+            <th>Выход</th>
+            <th>Ставка</th>
+            <th>P&amp;L</th>
+            <th>Результат</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </section>
+
+  <footer>Не финансовый совет. Эвристический сигнал + виртуальная торговля на реальных ценах OKX.</footer>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>
