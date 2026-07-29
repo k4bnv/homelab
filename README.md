@@ -94,6 +94,7 @@ Internet → Cloudflare DNS → Router :443 → Traefik (TLS)
 | [Traefik](traefik/) | Reverse proxy + TLS | https://traefik.kolyachaba.top |
 | [Lampac](lampac/) | Media streaming | http://192.168.178.194:9118 |
 | [Shelly Temp Monitor](https://github.com/k4bnv/shelly-temp-monitor) | IoT webhook + email alerts | https://temp.kolyachaba.top |
+| [OKX Options Bot](okx-options-bot/) | BTC/ETH options analysis (15m) → Telegram | — (background worker) |
 | GitLab CE | Source control + CI/CD | https://gitlab.kolyachaba.top |
 
 ## CI/CD
@@ -149,6 +150,7 @@ homelab/
 ├── portainer/         # Container UI
 ├── lampac/            # Media
 ├── traefik/           # Reverse proxy + TLS
+├── okx-options-bot/   # BTC/ETH options analysis bot (Telegram alerts)
 ├── scripts/deploy.sh
 └── README.md
 ```

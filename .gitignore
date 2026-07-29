@@ -5,3 +5,6 @@ acme.json
 traefik/acme/
 **/data/
 **/config/*.local.yaml
+__pycache__/
+*.pyc
+.pytest_cache/

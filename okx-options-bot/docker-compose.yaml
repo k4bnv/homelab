@@ -1,0 +1,7 @@
+services:
+  okx-options-bot:
+    container_name: okx-options-bot
+    build: .
+    restart: unless-stopped
+    env_file:
+      - .env
