@@ -118,7 +118,6 @@ function renderSettings(s) {
     ],
     ["Стартовый баланс (для статистики)", `$${s.starting_bankroll.toFixed(2)}`],
     ["Demo-режим OKX", s.okx_demo ? "да" : "нет"],
-    ["Trade mode", s.okx_td_mode],
     ["OKX ключи настроены", s.okx_authenticated ? "да" : "нет"],
   ];
   el.innerHTML = rows

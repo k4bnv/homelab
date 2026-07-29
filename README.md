@@ -94,7 +94,7 @@ Internet → Cloudflare DNS → Router :443 → Traefik (TLS)
 | [Traefik](traefik/) | Reverse proxy + TLS | https://traefik.kolyachaba.top |
 | [Lampac](lampac/) | Media streaming | http://192.168.178.194:9118 |
 | [Shelly Temp Monitor](https://github.com/k4bnv/shelly-temp-monitor) | IoT webhook + email alerts | https://temp.kolyachaba.top |
-| [OKX Options Bot](okx-options-bot/) | BTC/ETH options paper-trading + stats dashboard (15m) | http://192.168.178.194:8000 |
+| [OKX Options Bot](okx-options-bot/) | BTC/ETH/SOL 15m UP/DOWN Event Contracts (demo) + stats dashboard | http://192.168.178.194:8000 |
 | GitLab CE | Source control + CI/CD | https://gitlab.kolyachaba.top |
 
 ## CI/CD
@@ -150,7 +150,7 @@ homelab/
 ├── portainer/         # Container UI
 ├── lampac/            # Media
 ├── traefik/           # Reverse proxy + TLS
-├── okx-options-bot/   # BTC/ETH options paper-trading bot + stats dashboard
+├── okx-options-bot/   # BTC/ETH/SOL 15m UP/DOWN Event Contracts bot (demo)
 ├── scripts/deploy.sh
 └── README.md
 ```

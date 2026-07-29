@@ -43,7 +43,7 @@ def client(tmp_path):
 def test_index_serves_html(client):
     resp = client.get("/")
     assert resp.status_code == 200
-    assert "OKX Options Bot" in resp.text
+    assert "OKX Event Contracts Bot" in resp.text
 
 
 def test_index_sends_no_cache_header(client):

@@ -117,22 +117,36 @@ class OKXClient:
         data = self._get("/api/v5/public/mark-price", {"instType": inst_type, "instId": inst_id})
         return data[0] if data else None
 
-    def place_market_order(self, inst_id: str, side: str, sz: str, td_mode: str = "cash") -> dict:
+    def place_market_order(
+        self,
+        inst_id: str,
+        side: str,
+        sz: str,
+        td_mode: str = "cash",
+        outcome: str | None = None,
+        speed_bump: str | None = None,
+    ) -> dict:
         """Places a market order. `side` is 'buy' or 'sell'.
+
+        `outcome` ("yes"/"no") and `speed_bump` ("1") are only used for
+        EVENTS (event contract) orders - omitted entirely for other
+        instrument types.
 
         Returns the order ack (contains ordId, sCode, sMsg) - sCode == "0"
         means OKX accepted the order, it does not by itself mean filled.
         """
-        data = self._post(
-            "/api/v5/trade/order",
-            {
-                "instId": inst_id,
-                "tdMode": td_mode,
-                "side": side,
-                "ordType": "market",
-                "sz": sz,
-            },
-        )
+        body = {
+            "instId": inst_id,
+            "tdMode": td_mode,
+            "side": side,
+            "ordType": "market",
+            "sz": sz,
+        }
+        if outcome is not None:
+            body["outcome"] = outcome
+        if speed_bump is not None:
+            body["speedBump"] = speed_bump
+        data = self._post("/api/v5/trade/order", body)
         return data[0] if data else {}
 
     def get_order(self, inst_id: str, ord_id: str) -> dict | None:
@@ -144,6 +158,35 @@ class OKXClient:
         and a demo API key is configured."""
         data = self._get("/api/v5/account/balance", {"ccy": ccy} if ccy else None)
         return data[0] if data else None
+
+    def get_event_series(self, series_id: str | None = None) -> list[dict]:
+        """Lists Event Contract series, e.g. seriesId='BTC-UPDOWN-15MIN'.
+
+        Despite the "/public/" path, OKX requires this to be a signed
+        request (same as private endpoints).
+        """
+        return self._get("/api/v5/public/event-contract/series", {"seriesId": series_id})
+
+    def get_event_markets(
+        self,
+        series_id: str,
+        event_id: str | None = None,
+        inst_id: str | None = None,
+        state: str | None = None,
+    ) -> list[dict]:
+        """Lists tradeable Event Contract instruments within a series."""
+        return self._get(
+            "/api/v5/public/event-contract/markets",
+            {"seriesId": series_id, "eventId": event_id, "instId": inst_id, "state": state},
+        )
+
+    def get_fills(
+        self, inst_type: str, inst_id: str | None = None, ord_id: str | None = None
+    ) -> list[dict]:
+        return self._get(
+            "/api/v5/trade/fills",
+            {"instType": inst_type, "instId": inst_id, "ordId": ord_id},
+        )
 
     def close(self) -> None:
         self._client.close()

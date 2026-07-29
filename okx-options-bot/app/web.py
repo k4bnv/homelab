@@ -30,7 +30,7 @@ class NoCacheMiddleware(BaseHTTPMiddleware):
 
 
 def create_app(db: BetsDB, settings: Settings, client: OKXClient | None = None) -> FastAPI:
-    app = FastAPI(title="OKX Options Bot")
+    app = FastAPI(title="OKX Event Contracts Bot")
     app.add_middleware(NoCacheMiddleware)
     app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 
@@ -119,7 +119,6 @@ def create_app(db: BetsDB, settings: Settings, client: OKXClient | None = None) 
             "stake_overrides": settings.stake_overrides,
             "starting_bankroll": settings.starting_bankroll,
             "okx_demo": settings.okx_demo,
-            "okx_td_mode": settings.okx_td_mode,
             "okx_authenticated": client.authenticated if client else False,
         }
 

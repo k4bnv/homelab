@@ -9,7 +9,6 @@ class Settings(BaseSettings):
     okx_api_secret: str = ""
     okx_api_passphrase: str = ""
     okx_demo: bool = True
-    okx_td_mode: str = "cash"
 
     symbols: str = "BTC,ETH"
     candle_bar: str = "15m"

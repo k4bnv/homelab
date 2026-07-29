@@ -234,3 +234,84 @@ def test_get_order_returns_first_item():
     order = client.get_order("BTC-USD-991231-60000-C", "12345")
     assert order["state"] == "filled"
     assert order["avgPx"] == "0.05"
+
+
+@respx.mock
+def test_place_market_order_includes_outcome_and_speed_bump_for_events():
+    route = respx.post(f"{BASE_URL}/api/v5/trade/order").mock(
+        return_value=httpx.Response(
+            200, json={"code": "0", "msg": "", "data": [{"ordId": "1", "sCode": "0"}]}
+        )
+    )
+    client = OKXClient(BASE_URL, api_key="key", api_secret="secret", api_passphrase="phrase")
+    client.place_market_order(
+        "BTC-UPDOWN-15MIN-260729-1800-1815",
+        side="buy",
+        sz="5",
+        td_mode="isolated",
+        outcome="yes",
+        speed_bump="1",
+    )
+    import json as _json
+
+    body = _json.loads(route.calls.last.request.content)
+    assert body == {
+        "instId": "BTC-UPDOWN-15MIN-260729-1800-1815",
+        "tdMode": "isolated",
+        "side": "buy",
+        "ordType": "market",
+        "sz": "5",
+        "outcome": "yes",
+        "speedBump": "1",
+    }
+
+
+@respx.mock
+def test_get_event_series_passes_series_id_filter():
+    route = respx.get(f"{BASE_URL}/api/v5/public/event-contract/series").mock(
+        return_value=httpx.Response(
+            200,
+            json={
+                "code": "0",
+                "msg": "",
+                "data": [{"seriesId": "BTC-UPDOWN-15MIN", "freq": "fifteen_min"}],
+            },
+        )
+    )
+    client = OKXClient(BASE_URL, api_key="key", api_secret="secret", api_passphrase="phrase")
+    series = client.get_event_series("BTC-UPDOWN-15MIN")
+    assert series[0]["seriesId"] == "BTC-UPDOWN-15MIN"
+    assert route.calls.last.request.url.params["seriesId"] == "BTC-UPDOWN-15MIN"
+
+
+@respx.mock
+def test_get_event_markets_returns_data():
+    respx.get(f"{BASE_URL}/api/v5/public/event-contract/markets").mock(
+        return_value=httpx.Response(
+            200,
+            json={
+                "code": "0",
+                "msg": "",
+                "data": [{"instId": "BTC-UPDOWN-15MIN-260729-1800-1815", "state": "live"}],
+            },
+        )
+    )
+    client = OKXClient(BASE_URL, api_key="key", api_secret="secret", api_passphrase="phrase")
+    markets = client.get_event_markets("BTC-UPDOWN-15MIN", state="live")
+    assert markets[0]["instId"] == "BTC-UPDOWN-15MIN-260729-1800-1815"
+
+
+@respx.mock
+def test_get_fills_passes_inst_type_and_inst_id():
+    route = respx.get(f"{BASE_URL}/api/v5/trade/fills").mock(
+        return_value=httpx.Response(
+            200,
+            json={"code": "0", "msg": "", "data": [{"subType": "414", "fillPnl": "1.23"}]},
+        )
+    )
+    client = OKXClient(BASE_URL, api_key="key", api_secret="secret", api_passphrase="phrase")
+    fills = client.get_fills("EVENTS", inst_id="BTC-UPDOWN-15MIN-260729-1800-1815")
+    assert fills[0]["fillPnl"] == "1.23"
+    params = route.calls.last.request.url.params
+    assert params["instType"] == "EVENTS"
+    assert params["instId"] == "BTC-UPDOWN-15MIN-260729-1800-1815"
