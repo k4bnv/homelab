@@ -13,28 +13,15 @@ from app.signal import Bias, evaluate_bias
 
 log = logging.getLogger("okx_options_bot.bet_engine")
 
-FILL_POLL_ATTEMPTS = 60
-FILL_POLL_DELAY_SECONDS = 1.0
-
-# Event Contracts settle in USDT and always require isolated margin mode
-# plus the speedBump flag for non-post_only orders - these are fixed
-# protocol requirements, not configurable trading preferences.
-EVENT_TD_MODE = "isolated"
-EVENT_SPEED_BUMP = "1"
-
-# Event Contract order books are often thin/empty on the demo account -
-# market orders get instantly canceled by OKX's slippage protection when
-# there's no resting liquidity to match against ("price limit" cancel,
-# confirmed via cancelSourceReason). A limit order at an aggressive price
-# (valid range is 0.01-0.99) is accepted and rests in the book instead,
-# giving it a chance to fill if a counterparty shows up before we give up
-# and cancel it ourselves.
-EVENT_LIMIT_PRICE = "0.99"
-
-# Settlement fill subType codes observed on OKX Event Contracts.
-SETTLEMENT_WIN_SUBTYPE = "414"
-SETTLEMENT_LOSS_SUBTYPE = "415"
-SETTLEMENT_SUBTYPES = (SETTLEMENT_WIN_SUBTYPE, SETTLEMENT_LOSS_SUBTYPE)
+# Event Contract order books on the demo account have no real liquidity -
+# confirmed both via the API (empty order book, canceled market AND limit
+# orders) and manually in the OKX app itself. Real order placement isn't
+# viable here, so the bot never places one: it records the predicted
+# direction and settles it against the contract's own real outcome once
+# the 15m window expires, accounted at even money (win = +stake,
+# loss = -stake). This measures whether the directional signal itself is
+# any good, independent of execution/liquidity concerns.
+PAPER_ENTRY_PRICE = 0.5
 
 
 def _now_iso() -> str:
@@ -59,29 +46,6 @@ def build_technical_snapshot(
         ema9=indicators.ema(closes, 9),
         ema21=indicators.ema(closes, 21),
     )
-
-
-def _wait_for_fill(client: OKXClient, inst_id: str, ord_id: str) -> tuple[dict | None, dict | None]:
-    """Polls an order until it fills. Returns (filled_order, last_seen_order) -
-    filled_order is None on timeout, but last_seen_order (if any) is still
-    returned so callers can log the actual last-known state instead of a
-    generic timeout message."""
-    last_seen = None
-    for _ in range(FILL_POLL_ATTEMPTS):
-        last_seen = client.get_order(inst_id, ord_id)
-        if last_seen and last_seen.get("state") in ("filled", "partially_filled"):
-            if float(last_seen.get("accFillSz", 0) or 0) > 0:
-                return last_seen, last_seen
-        time.sleep(FILL_POLL_DELAY_SECONDS)
-    return None, last_seen
-
-
-def _describe_unfilled(last_seen: dict | None) -> str:
-    if last_seen is None:
-        return "no order data returned"
-    state = last_seen.get("state", "unknown")
-    acc_fill_sz = last_seen.get("accFillSz", "0")
-    return f"last state={state}, accFillSz={acc_fill_sz}"
 
 
 def _skip(message: str) -> str:
@@ -116,20 +80,25 @@ def _close_open_bet(db: BetsDB, client: OKXClient, symbol: str, spot: float) -> 
         return _skip(f"OKX API credentials not configured, cannot settle bet #{open_bet['id']}")
 
     inst_id = open_bet["inst_id"]
+    series_id = f"{symbol}-UPDOWN-15MIN"
     try:
-        fills = client.get_fills("EVENTS", inst_id=inst_id)
+        markets = client.get_event_markets(series_id, inst_id=inst_id)
     except Exception:
-        log.exception("Failed to fetch fills for %s", inst_id)
+        log.exception("Failed to fetch market state for %s", inst_id)
         return _skip(f"could not check settlement for {inst_id}, leaving bet #{open_bet['id']} open")
 
-    settlement = next((f for f in fills if f.get("subType") in SETTLEMENT_SUBTYPES), None)
-    if settlement is None:
+    market = next((m for m in markets if m.get("instId") == inst_id), None)
+    outcome_code = market.get("outcome") if market else None
+    if not outcome_code or outcome_code == "0":
         return _skip(f"{inst_id} not settled yet, leaving bet #{open_bet['id']} open")
 
-    pnl = float(settlement.get("fillPnl") or 0)
-    result = "WIN" if settlement.get("subType") == SETTLEMENT_WIN_SUBTYPE else "LOSS"
-    exit_value_usd = open_bet["stake_usd"] + pnl
-    exit_price = 1.0 if result == "WIN" else 0.0  # binary contract payout per unit
+    actual_direction = "UP" if outcome_code == "1" else "DOWN"
+    won = actual_direction == open_bet["direction"]
+    stake = open_bet["stake_usd"]
+    pnl = stake if won else -stake
+    result = "WIN" if won else "LOSS"
+    exit_value_usd = stake + pnl
+    exit_price = 1.0 if won else 0.0
 
     db.close_bet(
         open_bet["id"],
@@ -139,9 +108,12 @@ def _close_open_bet(db: BetsDB, client: OKXClient, symbol: str, spot: float) -> 
         exit_value_usd=exit_value_usd,
         pnl_usd=pnl,
         result=result,
-        exit_order_id=str(settlement.get("ordId") or ""),
+        exit_order_id=None,
     )
-    message = f"settled {inst_id}: pnl=${pnl:.2f} ({result})"
+    message = (
+        f"settled {inst_id}: actual={actual_direction}, bet={open_bet['direction']} "
+        f"-> pnl=${pnl:.2f} ({result})"
+    )
     log.info("Closed bet #%s: %s", open_bet["id"], message)
     return message
 
@@ -165,70 +137,25 @@ def _open_new_bet(
         return _skip(f"no live {symbol}-UPDOWN-15MIN event market, skipping bet")
 
     inst_id = market["instId"]
-    outcome = "yes" if bias.label == "Bullish" else "no"
+    direction = "UP" if bias.label == "Bullish" else "DOWN"
     stake = settings.stake_for(symbol)
-
-    limit_price = float(EVENT_LIMIT_PRICE)
-    contracts = int(stake // limit_price)
-    if contracts < 1:
-        return _skip(
-            f"stake ${stake:.2f} too small for one contract at limit price "
-            f"{EVENT_LIMIT_PRICE}, skipping bet"
-        )
-
-    ack = client.place_order(
-        inst_id,
-        side="buy",
-        sz=str(contracts),
-        ord_type="limit",
-        td_mode=EVENT_TD_MODE,
-        px=EVENT_LIMIT_PRICE,
-        outcome=outcome,
-        speed_bump=EVENT_SPEED_BUMP,
-    )
-    if ack.get("sCode") != "0":
-        return _skip(f"entry order rejected for {inst_id}: {ack.get('sMsg')}")
-
-    ord_id = ack.get("ordId")
-    if not ord_id:
-        return _skip(f"entry order for {inst_id} was accepted but returned no ordId")
-    filled, last_seen = _wait_for_fill(client, inst_id, ord_id)
-    if filled is None:
-        try:
-            client.cancel_order(inst_id, ord_id)
-        except Exception:
-            log.exception("Failed to cancel unfilled order %s for %s", ord_id, inst_id)
-        return _skip(
-            f"entry order {ord_id} for {inst_id} did not fill in time, canceled "
-            f"({_describe_unfilled(last_seen)})"
-        )
-
-    entry_price = float(filled.get("avgPx") or 0)
-    entry_sz = float(filled.get("accFillSz") or 0)
-    if entry_price <= 0 or entry_sz <= 0:
-        return _skip(f"entry fill for {inst_id} has no price/size, skipping bet")
-
-    entry_value_usd = entry_price * entry_sz
 
     db.open_bet(
         symbol=symbol,
-        direction="UP" if outcome == "yes" else "DOWN",
+        direction=direction,
         inst_id=inst_id,
         strike=float(market.get("floorStrike") or 0),
         expiry=str(market.get("expTime") or ""),
         bias_score=bias.score,
         opened_at=_now_iso(),
-        entry_price=entry_price,
+        entry_price=PAPER_ENTRY_PRICE,
         entry_spot=tech.spot,
-        contracts=entry_sz,
-        stake_usd=entry_value_usd,
-        entry_order_id=ord_id,
+        contracts=1.0,
+        stake_usd=stake,
+        entry_order_id=None,
     )
-    message = (
-        f"opened {bias.label} {inst_id}: {entry_sz:.4f} contracts @ {entry_price:.4f} "
-        f"(${entry_value_usd:.2f})"
-    )
-    log.info("%s (order %s)", message, ord_id)
+    message = f"opened (paper) {bias.label} {direction} {inst_id} (${stake:.2f})"
+    log.info(message)
     return message
 
 
@@ -239,7 +166,7 @@ def run_symbol(db: BetsDB, client: OKXClient, settings: Settings, symbol: str) -
     close_msg = _close_open_bet(db, client, symbol, tech.spot)
 
     # Vanilla options market metrics (IV skew, put/call OI) are used purely
-    # as an auxiliary signal input here - the bot trades Event Contracts
+    # as an auxiliary signal input here - the bot tracks Event Contracts
     # (UPDOWN-15MIN), not these options.
     opts_metrics = None
     try:
