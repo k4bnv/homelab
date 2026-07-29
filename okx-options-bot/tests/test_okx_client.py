@@ -101,6 +101,28 @@ def test_get_ticker_returns_none_when_empty():
 
 
 @respx.mock
+def test_get_mark_price_returns_first_item():
+    respx.get(f"{BASE_URL}/api/v5/public/mark-price").mock(
+        return_value=httpx.Response(
+            200,
+            json={"code": "0", "msg": "", "data": [{"instId": "BTC-USDT", "markPx": "0.05"}]},
+        )
+    )
+    client = OKXClient(BASE_URL)
+    mark = client.get_mark_price("BTC-USDT")
+    assert mark == {"instId": "BTC-USDT", "markPx": "0.05"}
+
+
+@respx.mock
+def test_get_mark_price_returns_none_when_empty():
+    respx.get(f"{BASE_URL}/api/v5/public/mark-price").mock(
+        return_value=httpx.Response(200, json={"code": "0", "msg": "", "data": []})
+    )
+    client = OKXClient(BASE_URL)
+    assert client.get_mark_price("BTC-USDT") is None
+
+
+@respx.mock
 def test_demo_client_sends_simulated_trading_header_on_get():
     route = respx.get(f"{BASE_URL}/api/v5/public/open-interest").mock(
         return_value=httpx.Response(200, json={"code": "0", "msg": "", "data": []})

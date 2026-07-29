@@ -111,6 +111,12 @@ class OKXClient:
         data = self._get("/api/v5/market/ticker", {"instId": inst_id})
         return data[0] if data else None
 
+    def get_mark_price(self, inst_id: str, inst_type: str = "OPTION") -> dict | None:
+        """OKX's model/theoretical price - populated even when the order book
+        has no resting bid/ask, unlike get_ticker."""
+        data = self._get("/api/v5/public/mark-price", {"instType": inst_type, "instId": inst_id})
+        return data[0] if data else None
+
     def place_market_order(self, inst_id: str, side: str, sz: str, td_mode: str = "cash") -> dict:
         """Places a market order. `side` is 'buy' or 'sell'.
 

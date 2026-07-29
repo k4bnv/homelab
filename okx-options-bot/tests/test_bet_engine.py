@@ -31,16 +31,28 @@ SNAPSHOTS = options_analysis.parse_opt_summary(
 
 
 class FakeClient:
-    def __init__(self, tickers=None, instruments=None, order_acks=None, order_fills=None, authenticated=True):
+    def __init__(
+        self,
+        tickers=None,
+        instruments=None,
+        order_acks=None,
+        order_fills=None,
+        mark_prices=None,
+        authenticated=True,
+    ):
         self.tickers = tickers or {}
         self.instruments = instruments or {}
         self.order_acks = order_acks or {}
         self.order_fills = order_fills or {}
+        self.mark_prices = mark_prices or {}
         self.authenticated = authenticated
         self.placed_orders = []
 
     def get_ticker(self, inst_id):
         return self.tickers.get(inst_id)
+
+    def get_mark_price(self, inst_id, inst_type="OPTION"):
+        return self.mark_prices.get(inst_id)
 
     def get_instruments(self, uly, inst_type="OPTION"):
         return list(self.instruments.get(uly, {}).values())
@@ -184,6 +196,38 @@ def test_open_new_bet_order_rejected_skips(db, settings):
     bet_engine._open_new_bet(db, settings, client, "BTC", tech(), bias, SNAPSHOTS, inst_by_id)
 
     assert db.get_open_bet("BTC") is None
+
+
+def test_open_new_bet_falls_back_to_mark_price_when_book_empty(db, settings):
+    client = FakeClient(
+        tickers={CALL_INST: {"askPx": "", "bidPx": "", "last": ""}},
+        mark_prices={CALL_INST: {"markPx": "0.05"}},
+        order_fills={
+            f"ord-{CALL_INST}-buy": {"state": "filled", "avgPx": "0.05", "accFillSz": "100"}
+        },
+    )
+    bias = Bias(label="Bullish", score=2, reasons=[])
+    inst_by_id = {CALL_INST: usd_margined_instrument(CALL_INST)}
+
+    bet_engine._open_new_bet(db, settings, client, "BTC", tech(), bias, SNAPSHOTS, inst_by_id)
+
+    open_bet = db.get_open_bet("BTC")
+    assert open_bet is not None
+    assert open_bet["contracts"] == pytest.approx(100.0)
+
+
+def test_open_new_bet_no_ticker_or_mark_price_skips(db, settings):
+    client = FakeClient(
+        tickers={CALL_INST: {"askPx": "", "bidPx": "", "last": ""}},
+        mark_prices={},
+    )
+    bias = Bias(label="Bullish", score=2, reasons=[])
+    inst_by_id = {CALL_INST: usd_margined_instrument(CALL_INST)}
+
+    bet_engine._open_new_bet(db, settings, client, "BTC", tech(), bias, SNAPSHOTS, inst_by_id)
+
+    assert db.get_open_bet("BTC") is None
+    assert client.placed_orders == []
 
 
 def test_open_new_bet_never_fills_skips(db, settings):

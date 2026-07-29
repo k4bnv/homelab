@@ -200,7 +200,14 @@ def _open_new_bet(
 
     quote_price = float(ticker.get("askPx") or ticker.get("last") or 0)
     if quote_price <= 0:
-        log.warning("No valid quote price for %s, skipping bet", contract.inst_id)
+        # Thin/empty order book (common for less-liquid strikes, especially
+        # on demo accounts) - fall back to OKX's model mark price just to
+        # size the order. The order itself is still a market order, so this
+        # price is an estimate, not a guaranteed fill price.
+        mark = client.get_mark_price(contract.inst_id)
+        quote_price = float(mark.get("markPx") or 0) if mark else 0
+    if quote_price <= 0:
+        log.warning("No valid quote or mark price for %s, skipping bet", contract.inst_id)
         return
 
     ct_val = float(inst_meta.get("ctVal", 1) or 1)
