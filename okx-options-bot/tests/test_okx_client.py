@@ -123,6 +123,38 @@ def test_get_mark_price_returns_none_when_empty():
 
 
 @respx.mock
+def test_get_balance_with_ccy_filter():
+    route = respx.get(f"{BASE_URL}/api/v5/account/balance").mock(
+        return_value=httpx.Response(
+            200,
+            json={
+                "code": "0",
+                "msg": "",
+                "data": [
+                    {
+                        "totalEq": "1000",
+                        "details": [{"ccy": "USDT", "availBal": "1000", "eq": "1000"}],
+                    }
+                ],
+            },
+        )
+    )
+    client = OKXClient(BASE_URL, api_key="key", api_secret="secret", api_passphrase="phrase")
+    balance = client.get_balance(ccy="USDT")
+    assert balance["details"][0]["ccy"] == "USDT"
+    assert route.calls.last.request.url.params["ccy"] == "USDT"
+
+
+@respx.mock
+def test_get_balance_returns_none_when_empty():
+    respx.get(f"{BASE_URL}/api/v5/account/balance").mock(
+        return_value=httpx.Response(200, json={"code": "0", "msg": "", "data": []})
+    )
+    client = OKXClient(BASE_URL, api_key="key", api_secret="secret", api_passphrase="phrase")
+    assert client.get_balance() is None
+
+
+@respx.mock
 def test_demo_client_sends_simulated_trading_header_on_get():
     route = respx.get(f"{BASE_URL}/api/v5/public/open-interest").mock(
         return_value=httpx.Response(200, json={"code": "0", "msg": "", "data": []})

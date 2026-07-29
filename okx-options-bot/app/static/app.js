@@ -41,11 +41,6 @@ async function fetchJson(url) {
 function renderTiles(summary) {
   const tiles = [
     {
-      label: "Balance",
-      value: `$${summary.balance.toFixed(2)}`,
-      cls: pnlClass(summary.balance - summary.starting_bankroll),
-    },
-    {
       label: "Total P&L",
       value: fmtUsd(summary.total_pnl),
       cls: pnlClass(summary.total_pnl),
@@ -97,17 +92,41 @@ function renderOkxBalance(data) {
     el.innerHTML = `<div class="empty">Недоступно: ${data.reason || "неизвестная причина"}</div>`;
     return;
   }
-  const detailsHtml = data.details.length
-    ? data.details
-        .map((d) => `<span class="badge OPEN">${d.ccy}: ${d.availBal.toFixed(4)}</span>`)
-        .join(" ")
-    : '<span class="label">нет ненулевых балансов</span>';
   el.innerHTML = `
     <div class="tile">
-      <div class="label">Total equity (USD)${data.demo ? " · demo" : ""}</div>
-      <div class="value">$${data.total_eq_usd.toFixed(2)}</div>
-      <div style="margin-top:8px">${detailsHtml}</div>
+      <div class="label">USDT баланс${data.demo ? " · demo" : ""}</div>
+      <div class="value">$${data.avail_bal.toFixed(2)}</div>
+      <div class="label">equity: $${data.eq.toFixed(2)}</div>
     </div>`;
+}
+
+function renderSettings(s) {
+  const el = document.getElementById("settings");
+  const rows = [
+    ["Символы", s.symbols.join(", ")],
+    ["Таймфрейм свечей", s.candle_bar],
+    ["Интервал цикла", `${s.poll_interval_seconds}s`],
+    ["Порог сигнала (bias)", `±${s.bias_threshold}`],
+    ["Ставка по умолчанию", `$${s.stake_usd.toFixed(2)}`],
+    [
+      "Ставки по символам",
+      Object.keys(s.stake_overrides).length
+        ? Object.entries(s.stake_overrides)
+            .map(([sym, amt]) => `${sym}: $${Number(amt).toFixed(2)}`)
+            .join(", ")
+        : "нет переопределений",
+    ],
+    ["Стартовый баланс (для статистики)", `$${s.starting_bankroll.toFixed(2)}`],
+    ["Demo-режим OKX", s.okx_demo ? "да" : "нет"],
+    ["Trade mode", s.okx_td_mode],
+    ["OKX ключи настроены", s.okx_authenticated ? "да" : "нет"],
+  ];
+  el.innerHTML = rows
+    .map(
+      ([label, value]) =>
+        `<div class="tile"><div class="label">${label}</div><div class="value">${value}</div></div>`
+    )
+    .join("");
 }
 
 function renderActivity(rows) {
@@ -204,12 +223,13 @@ function renderEquityCurve(points) {
 
 async function refresh() {
   try {
-    const [summary, bets, curve, activity, okxBalance] = await Promise.all([
+    const [summary, bets, curve, activity, okxBalance, settings] = await Promise.all([
       fetchJson("/api/summary"),
       fetchJson("/api/bets?limit=100"),
       fetchJson("/api/equity-curve"),
       fetchJson("/api/activity?limit=50"),
       fetchJson("/api/okx-balance"),
+      fetchJson("/api/settings"),
     ]);
     renderTiles(summary);
     renderBySymbol(summary.by_symbol);
@@ -217,6 +237,7 @@ async function refresh() {
     renderEquityCurve(curve);
     renderActivity(activity);
     renderOkxBalance(okxBalance);
+    renderSettings(settings);
   } catch (err) {
     console.error("refresh failed", err);
   }

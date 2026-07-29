@@ -129,7 +129,7 @@ class FakeOKXClient:
         self.demo = demo
         self._balance = balance
 
-    def get_balance(self):
+    def get_balance(self, ccy=None):
         return self._balance
 
 
@@ -144,7 +144,7 @@ def test_okx_balance_unavailable_when_not_authenticated(tmp_path):
     db.close()
 
 
-def test_okx_balance_returns_equity_and_details(tmp_path):
+def test_okx_balance_returns_usdt_only(tmp_path):
     db = BetsDB(str(tmp_path / "bets4.db"))
     settings = Settings()
     fake_client = FakeOKXClient(
@@ -154,7 +154,6 @@ def test_okx_balance_returns_equity_and_details(tmp_path):
             "totalEq": "1234.5",
             "details": [
                 {"ccy": "USDT", "availBal": "1000.0", "eq": "1000.0"},
-                {"ccy": "BTC", "availBal": "0", "eq": "0"},
             ],
         },
     )
@@ -163,8 +162,52 @@ def test_okx_balance_returns_equity_and_details(tmp_path):
         resp = test_client.get("/api/okx-balance")
         data = resp.json()
         assert data["available"] is True
-        assert data["total_eq_usd"] == 1234.5
+        assert data["ccy"] == "USDT"
+        assert data["avail_bal"] == 1000.0
+        assert data["eq"] == 1000.0
         assert data["demo"] is True
-        assert len(data["details"]) == 1  # zero-eq BTC filtered out
-        assert data["details"][0]["ccy"] == "USDT"
+    db.close()
+
+
+def test_okx_balance_unavailable_when_no_usdt(tmp_path):
+    db = BetsDB(str(tmp_path / "bets5.db"))
+    settings = Settings()
+    fake_client = FakeOKXClient(
+        authenticated=True,
+        demo=True,
+        balance={"totalEq": "10", "details": [{"ccy": "BTC", "availBal": "0.001", "eq": "60"}]},
+    )
+    app = create_app(db, settings, fake_client)
+    with TestClient(app) as test_client:
+        resp = test_client.get("/api/okx-balance")
+        data = resp.json()
+        assert data["available"] is False
+    db.close()
+
+
+def test_settings_endpoint_excludes_secrets(tmp_path):
+    db = BetsDB(str(tmp_path / "bets6.db"))
+    settings = Settings(
+        okx_api_key="secret-key",
+        okx_api_secret="secret-secret",
+        okx_api_passphrase="secret-pass",
+        bias_threshold=2,
+        stake_usd=7.0,
+        stake_usd_overrides="BTC:10",
+        symbols="BTC,ETH",
+    )
+    fake_client = FakeOKXClient(authenticated=True)
+    app = create_app(db, settings, fake_client)
+    with TestClient(app) as test_client:
+        resp = test_client.get("/api/settings")
+        data = resp.json()
+        assert data["bias_threshold"] == 2
+        assert data["stake_usd"] == 7.0
+        assert data["stake_overrides"] == {"BTC": 10.0}
+        assert data["symbols"] == ["BTC", "ETH"]
+        assert data["okx_authenticated"] is True
+        blob = str(data)
+        assert "secret-key" not in blob
+        assert "secret-secret" not in blob
+        assert "secret-pass" not in blob
     db.close()

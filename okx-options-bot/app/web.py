@@ -90,26 +90,37 @@ def create_app(db: BetsDB, settings: Settings, client: OKXClient | None = None) 
         if client is None or not client.authenticated:
             return {"available": False, "reason": "OKX API credentials not configured"}
         try:
-            balance = client.get_balance()
+            balance = client.get_balance(ccy="USDT")
         except Exception:
             log.exception("Failed to fetch OKX account balance")
             return {"available": False, "reason": "Failed to reach OKX"}
         if balance is None:
             return {"available": False, "reason": "Empty response from OKX"}
-        details = [
-            {
-                "ccy": d.get("ccy"),
-                "availBal": float(d.get("availBal") or 0),
-                "eq": float(d.get("eq") or 0),
-            }
-            for d in balance.get("details", [])
-            if float(d.get("eq") or 0) != 0
-        ]
+        usdt = next((d for d in balance.get("details", []) if d.get("ccy") == "USDT"), None)
+        if usdt is None:
+            return {"available": False, "reason": "No USDT balance on this account"}
         return {
             "available": True,
-            "total_eq_usd": float(balance.get("totalEq") or 0),
+            "ccy": "USDT",
+            "avail_bal": float(usdt.get("availBal") or 0),
+            "eq": float(usdt.get("eq") or 0),
             "demo": client.demo,
-            "details": details,
+        }
+
+    @app.get("/api/settings")
+    def get_settings() -> dict:
+        return {
+            "symbols": settings.symbol_list,
+            "candle_bar": settings.candle_bar,
+            "candle_limit": settings.candle_limit,
+            "poll_interval_seconds": settings.poll_interval_seconds,
+            "bias_threshold": settings.bias_threshold,
+            "stake_usd": settings.stake_usd,
+            "stake_overrides": settings.stake_overrides,
+            "starting_bankroll": settings.starting_bankroll,
+            "okx_demo": settings.okx_demo,
+            "okx_td_mode": settings.okx_td_mode,
+            "okx_authenticated": client.authenticated if client else False,
         }
 
     return app
