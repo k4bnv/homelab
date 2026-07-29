@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import logging
 from pathlib import Path
 
 from fastapi import FastAPI
@@ -9,11 +10,14 @@ from fastapi.staticfiles import StaticFiles
 from app import stats
 from app.config import Settings
 from app.db import BetsDB
+from app.okx_client import OKXClient
+
+log = logging.getLogger("okx_options_bot.web")
 
 STATIC_DIR = Path(__file__).parent / "static"
 
 
-def create_app(db: BetsDB, settings: Settings) -> FastAPI:
+def create_app(db: BetsDB, settings: Settings, client: OKXClient | None = None) -> FastAPI:
     app = FastAPI(title="OKX Options Bot")
     app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 
@@ -38,6 +42,7 @@ def create_app(db: BetsDB, settings: Settings) -> FastAPI:
             "current_streak_type": s.current_streak_type,
             "max_drawdown": s.max_drawdown,
             "stake_usd": settings.stake_usd,
+            "bias_threshold": settings.bias_threshold,
             "by_symbol": {
                 symbol: {
                     "bets": ss.bets,
@@ -46,6 +51,7 @@ def create_app(db: BetsDB, settings: Settings) -> FastAPI:
                     "pushes": ss.pushes,
                     "pnl_usd": ss.pnl_usd,
                     "win_rate": ss.win_rate,
+                    "stake_usd": settings.stake_for(symbol),
                 }
                 for symbol, ss in s.by_symbol.items()
             },
@@ -60,5 +66,37 @@ def create_app(db: BetsDB, settings: Settings) -> FastAPI:
     def equity_curve(symbol: str | None = None) -> list[dict]:
         closed = [dict(row) for row in db.closed_bets_chronological(symbol=symbol)]
         return stats.equity_curve(closed, settings.starting_bankroll)
+
+    @app.get("/api/activity")
+    def activity(limit: int = 50) -> list[dict]:
+        rows = db.list_activity(limit=limit)
+        return [dict(row) for row in rows]
+
+    @app.get("/api/okx-balance")
+    def okx_balance() -> dict:
+        if client is None or not client.authenticated:
+            return {"available": False, "reason": "OKX API credentials not configured"}
+        try:
+            balance = client.get_balance()
+        except Exception:
+            log.exception("Failed to fetch OKX account balance")
+            return {"available": False, "reason": "Failed to reach OKX"}
+        if balance is None:
+            return {"available": False, "reason": "Empty response from OKX"}
+        details = [
+            {
+                "ccy": d.get("ccy"),
+                "availBal": float(d.get("availBal") or 0),
+                "eq": float(d.get("eq") or 0),
+            }
+            for d in balance.get("details", [])
+            if float(d.get("eq") or 0) != 0
+        ]
+        return {
+            "available": True,
+            "total_eq_usd": float(balance.get("totalEq") or 0),
+            "demo": client.demo,
+            "details": details,
+        }
 
     return app

@@ -12,7 +12,9 @@ class Bias:
     reasons: list[str]
 
 
-def evaluate_bias(tech: TechnicalSnapshot, opts: OptionsMetrics | None) -> Bias:
+def evaluate_bias(
+    tech: TechnicalSnapshot, opts: OptionsMetrics | None, threshold: int = 1
+) -> Bias:
     """Simple rule-of-thumb heuristic combining momentum + options positioning.
 
     This is not financial advice: it's a coarse score meant to flag notable
@@ -53,9 +55,9 @@ def evaluate_bias(tech: TechnicalSnapshot, opts: OptionsMetrics | None) -> Bias:
             score += 1
             reasons.append(f"25d call skew elevated ({opts.iv_skew_25d:.2%})")
 
-    if score >= 1:
+    if score >= threshold:
         label = "Bullish"
-    elif score <= -1:
+    elif score <= -threshold:
         label = "Bearish"
     else:
         label = "Neutral"

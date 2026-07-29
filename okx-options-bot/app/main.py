@@ -63,7 +63,7 @@ def main() -> None:
     )
     scheduler_thread.start()
 
-    app = create_app(db, settings)
+    app = create_app(db, settings, client)
     try:
         uvicorn.run(
             app,

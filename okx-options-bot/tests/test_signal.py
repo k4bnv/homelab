@@ -81,3 +81,17 @@ def test_neutral_stays_neutral_at_score_zero():
     bias = evaluate_bias(tech, None)
     assert bias.score == 0
     assert bias.label == "Neutral"
+
+
+def test_higher_threshold_needs_stronger_agreement():
+    tech = make_tech(rsi14=25, macd_histogram=None)  # score == 1
+    bias = evaluate_bias(tech, None, threshold=2)
+    assert bias.score == 1
+    assert bias.label == "Neutral"  # doesn't clear the higher bar
+
+
+def test_higher_threshold_still_fires_on_full_agreement():
+    tech = make_tech(rsi14=25, macd_histogram=1.0)
+    opts = make_opts(pcr=0.5, skew=-0.05)  # score == 4
+    bias = evaluate_bias(tech, opts, threshold=4)
+    assert bias.label == "Bullish"

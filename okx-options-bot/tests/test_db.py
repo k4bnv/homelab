@@ -101,3 +101,31 @@ def test_closed_bets_chronological_only_returns_closed(db):
     assert len(rows) == 1
     assert rows[0]["id"] == closed_id
     assert open_id != closed_id
+
+
+def test_list_activity_empty(db):
+    assert db.list_activity() == []
+
+
+def test_log_activity_then_list(db):
+    db.log_activity(
+        ts="2026-01-01T00:00:00Z",
+        symbol="BTC",
+        bias_label="Bullish",
+        bias_score=2,
+        message="opened CALL ...",
+    )
+    rows = db.list_activity()
+    assert len(rows) == 1
+    assert rows[0]["symbol"] == "BTC"
+    assert rows[0]["bias_label"] == "Bullish"
+    assert rows[0]["message"] == "opened CALL ..."
+
+
+def test_list_activity_orders_newest_first_and_respects_limit(db):
+    for i in range(5):
+        db.log_activity(
+            ts=f"t{i}", symbol="BTC", bias_label="Neutral", bias_score=0, message=f"msg{i}"
+        )
+    rows = db.list_activity(limit=2)
+    assert [r["message"] for r in rows] == ["msg4", "msg3"]

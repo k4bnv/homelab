@@ -69,6 +69,7 @@ function renderTiles(summary) {
     .join("");
 
   document.getElementById("stake").textContent = summary.stake_usd.toFixed(2);
+  document.getElementById("threshold").textContent = summary.bias_threshold;
 }
 
 function renderBySymbol(bySymbol) {
@@ -82,11 +83,48 @@ function renderBySymbol(bySymbol) {
     .map((sym) => {
       const s = bySymbol[sym];
       return `<div class="tile">
-        <div class="label">${sym}</div>
+        <div class="label">${sym} · ставка $${s.stake_usd.toFixed(2)}</div>
         <div class="value ${pnlClass(s.pnl_usd)}">${fmtUsd(s.pnl_usd)}</div>
         <div class="label">${s.wins}W / ${s.losses}L / ${s.pushes}P · ${fmtPct(s.win_rate)}</div>
       </div>`;
     })
+    .join("");
+}
+
+function renderOkxBalance(data) {
+  const el = document.getElementById("okx-balance");
+  if (!data.available) {
+    el.innerHTML = `<div class="empty">Недоступно: ${data.reason || "неизвестная причина"}</div>`;
+    return;
+  }
+  const detailsHtml = data.details.length
+    ? data.details
+        .map((d) => `<span class="badge OPEN">${d.ccy}: ${d.availBal.toFixed(4)}</span>`)
+        .join(" ")
+    : '<span class="label">нет ненулевых балансов</span>';
+  el.innerHTML = `
+    <div class="tile">
+      <div class="label">Total equity (USD)${data.demo ? " · demo" : ""}</div>
+      <div class="value">$${data.total_eq_usd.toFixed(2)}</div>
+      <div style="margin-top:8px">${detailsHtml}</div>
+    </div>`;
+}
+
+function renderActivity(rows) {
+  const tbody = document.querySelector("#activity-table tbody");
+  if (rows.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="4" class="empty">Пока нет записей</td></tr>';
+    return;
+  }
+  tbody.innerHTML = rows
+    .map(
+      (r) => `<tr>
+        <td>${fmtTime(r.ts)}</td>
+        <td>${r.symbol}</td>
+        <td>${r.bias_label} (${r.bias_score > 0 ? "+" : ""}${r.bias_score})</td>
+        <td>${r.message}</td>
+      </tr>`
+    )
     .join("");
 }
 
@@ -166,15 +204,19 @@ function renderEquityCurve(points) {
 
 async function refresh() {
   try {
-    const [summary, bets, curve] = await Promise.all([
+    const [summary, bets, curve, activity, okxBalance] = await Promise.all([
       fetchJson("/api/summary"),
       fetchJson("/api/bets?limit=100"),
       fetchJson("/api/equity-curve"),
+      fetchJson("/api/activity?limit=50"),
+      fetchJson("/api/okx-balance"),
     ]);
     renderTiles(summary);
     renderBySymbol(summary.by_symbol);
     renderBets(bets);
     renderEquityCurve(curve);
+    renderActivity(activity);
+    renderOkxBalance(okxBalance);
   } catch (err) {
     console.error("refresh failed", err);
   }

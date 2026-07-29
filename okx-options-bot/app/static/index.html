@@ -9,10 +9,15 @@
 <body>
   <header>
     <h1>OKX Options Bot</h1>
-    <div class="subtitle">Paper-trading статистика по опционам BTC/ETH · ставка $<span id="stake">-</span> · обновляется автоматически</div>
+    <div class="subtitle">Демо-торговля опционами BTC/ETH · целевая ставка $<span id="stake">-</span> · порог сигнала ±<span id="threshold">-</span> · обновляется автоматически</div>
   </header>
 
   <section class="tiles" id="tiles"></section>
+
+  <section class="panel" id="okx-balance-panel">
+    <h2>Баланс OKX (демо-счёт)</h2>
+    <div id="okx-balance"></div>
+  </section>
 
   <section class="panel">
     <h2>Equity curve</h2>
@@ -22,6 +27,23 @@
   <section class="panel" id="by-symbol-panel">
     <h2>По инструментам</h2>
     <div class="tiles" id="by-symbol"></div>
+  </section>
+
+  <section class="panel">
+    <h2>Журнал циклов (каждые 15 мин)</h2>
+    <div class="table-wrap">
+      <table id="activity-table">
+        <thead>
+          <tr>
+            <th>Время</th>
+            <th>Символ</th>
+            <th>Bias</th>
+            <th>Что произошло</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
   </section>
 
   <section class="panel">
@@ -46,7 +68,7 @@
     </div>
   </section>
 
-  <footer>Не финансовый совет. Эвристический сигнал + виртуальная торговля на реальных ценах OKX.</footer>
+  <footer>Не финансовый совет. Эвристический сигнал, исполняется реальными ордерами на демо-счёте OKX.</footer>
 
   <script src="/static/app.js"></script>
 </body>

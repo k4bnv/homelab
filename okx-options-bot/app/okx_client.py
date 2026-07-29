@@ -139,6 +139,12 @@ class OKXClient:
         data = self._get("/api/v5/trade/order", {"instId": inst_id, "ordId": ord_id})
         return data[0] if data else None
 
+    def get_balance(self, ccy: str | None = None) -> dict | None:
+        """Account balance/equity - reflects the demo balance when demo=True
+        and a demo API key is configured."""
+        data = self._get("/api/v5/account/balance", {"ccy": ccy} if ccy else None)
+        return data[0] if data else None
+
     def close(self) -> None:
         self._client.close()
 

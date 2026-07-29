@@ -27,6 +27,16 @@ CREATE TABLE IF NOT EXISTS bets (
     result TEXT                     -- WIN / LOSS / PUSH
 );
 CREATE INDEX IF NOT EXISTS idx_bets_symbol_status ON bets(symbol, status);
+
+CREATE TABLE IF NOT EXISTS activity_log (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    ts TEXT NOT NULL,
+    symbol TEXT NOT NULL,
+    bias_label TEXT NOT NULL,
+    bias_score INTEGER NOT NULL,
+    message TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_activity_log_ts ON activity_log(id DESC);
 """
 
 # Additive migrations for columns introduced after the initial schema.
@@ -148,6 +158,23 @@ class BetsDB:
             )
         else:
             cur = self._conn.execute("SELECT * FROM bets WHERE status='CLOSED' ORDER BY id ASC")
+        return cur.fetchall()
+
+    def log_activity(
+        self, *, ts: str, symbol: str, bias_label: str, bias_score: int, message: str
+    ) -> None:
+        with self._lock:
+            self._conn.execute(
+                """INSERT INTO activity_log (ts, symbol, bias_label, bias_score, message)
+                   VALUES (?, ?, ?, ?, ?)""",
+                (ts, symbol, bias_label, bias_score, message),
+            )
+            self._conn.commit()
+
+    def list_activity(self, limit: int = 50) -> list[sqlite3.Row]:
+        cur = self._conn.execute(
+            "SELECT * FROM activity_log ORDER BY id DESC LIMIT ?", (limit,)
+        )
         return cur.fetchall()
 
     def close(self) -> None:
