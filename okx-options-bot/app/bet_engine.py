@@ -132,6 +132,13 @@ def _open_new_bet(
     if not client.authenticated:
         return _skip(f"OKX API credentials not configured, cannot open bet for {symbol}")
 
+    existing = db.get_open_bet(symbol)
+    if existing is not None:
+        return _skip(
+            f"bet #{existing['id']} on {existing['inst_id']} still open (not settled), "
+            f"skipping new bet"
+        )
+
     market = select_current_event_market(client, symbol)
     if market is None:
         return _skip(f"no live {symbol}-UPDOWN-15MIN event market, skipping bet")

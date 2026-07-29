@@ -160,6 +160,21 @@ def test_open_new_bet_no_live_market_skips(db, settings):
     assert db.get_open_bet("BTC") is None
 
 
+def test_open_new_bet_skips_when_previous_bet_still_open(db, settings):
+    now_ms = bet_engine.time.time() * 1000
+    _open(db, inst_id="OLD-INST-ID", symbol="BTC")  # still OPEN, not settled
+    client = FakeClient(markets=[market(inst_id="NEW-INST-ID", exp_time=now_ms + 5 * 60_000)])
+    bias = Bias(label="Bullish", score=2, reasons=[])
+
+    bet_engine._open_new_bet(db, settings, client, "BTC", tech(), bias)
+
+    # still exactly one open bet, and it's the original one - no second bet
+    # was opened on top of it
+    open_bet = db.get_open_bet("BTC")
+    assert open_bet["inst_id"] == "OLD-INST-ID"
+    assert len(db.list_bets(limit=10)) == 1
+
+
 def test_open_new_bet_uses_per_symbol_stake(db):
     now_ms = bet_engine.time.time() * 1000
     settings = Settings(stake_usd=5.0, stake_usd_overrides="BTC:20")
