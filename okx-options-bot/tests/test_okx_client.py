@@ -98,3 +98,85 @@ def test_get_ticker_returns_none_when_empty():
     )
     client = OKXClient(BASE_URL)
     assert client.get_ticker("BTC-USDT") is None
+
+
+@respx.mock
+def test_demo_client_sends_simulated_trading_header_on_get():
+    route = respx.get(f"{BASE_URL}/api/v5/public/open-interest").mock(
+        return_value=httpx.Response(200, json={"code": "0", "msg": "", "data": []})
+    )
+    client = OKXClient(BASE_URL, demo=True)
+    client.get_open_interest("BTC-USD")
+    assert route.calls.last.request.headers["x-simulated-trading"] == "1"
+
+
+@respx.mock
+def test_non_demo_client_has_no_simulated_trading_header():
+    route = respx.get(f"{BASE_URL}/api/v5/public/open-interest").mock(
+        return_value=httpx.Response(200, json={"code": "0", "msg": "", "data": []})
+    )
+    client = OKXClient(BASE_URL, demo=False)
+    client.get_open_interest("BTC-USD")
+    assert "x-simulated-trading" not in route.calls.last.request.headers
+
+
+@respx.mock
+def test_place_market_order_sends_signed_post_with_demo_header():
+    route = respx.post(f"{BASE_URL}/api/v5/trade/order").mock(
+        return_value=httpx.Response(
+            200,
+            json={
+                "code": "0",
+                "msg": "",
+                "data": [{"ordId": "12345", "sCode": "0", "sMsg": ""}],
+            },
+        )
+    )
+    client = OKXClient(
+        BASE_URL, api_key="key", api_secret="secret", api_passphrase="phrase", demo=True
+    )
+    ack = client.place_market_order("BTC-USD-991231-60000-C", side="buy", sz="0.5")
+
+    assert ack == {"ordId": "12345", "sCode": "0", "sMsg": ""}
+    request = route.calls.last.request
+    assert request.headers["x-simulated-trading"] == "1"
+    assert request.headers["OK-ACCESS-KEY"] == "key"
+    assert request.headers["Content-Type"] == "application/json"
+    import json as _json
+
+    body = _json.loads(request.content)
+    assert body == {
+        "instId": "BTC-USD-991231-60000-C",
+        "tdMode": "cash",
+        "side": "buy",
+        "ordType": "market",
+        "sz": "0.5",
+    }
+
+
+@respx.mock
+def test_place_market_order_raises_on_top_level_error():
+    respx.post(f"{BASE_URL}/api/v5/trade/order").mock(
+        return_value=httpx.Response(200, json={"code": "50001", "msg": "auth failed", "data": []})
+    )
+    client = OKXClient(BASE_URL, api_key="key", api_secret="secret", api_passphrase="phrase")
+    with pytest.raises(OKXAPIError):
+        client.place_market_order("BTC-USD-991231-60000-C", side="buy", sz="0.5")
+
+
+@respx.mock
+def test_get_order_returns_first_item():
+    respx.get(f"{BASE_URL}/api/v5/trade/order").mock(
+        return_value=httpx.Response(
+            200,
+            json={
+                "code": "0",
+                "msg": "",
+                "data": [{"ordId": "12345", "state": "filled", "avgPx": "0.05"}],
+            },
+        )
+    )
+    client = OKXClient(BASE_URL, api_key="key", api_secret="secret", api_passphrase="phrase")
+    order = client.get_order("BTC-USD-991231-60000-C", "12345")
+    assert order["state"] == "filled"
+    assert order["avgPx"] == "0.05"

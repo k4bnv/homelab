@@ -24,10 +24,11 @@ def run_scheduler(
     db: BetsDB, client: OKXClient, settings: Settings, stop_event: threading.Event
 ) -> None:
     log.info(
-        "Bet engine started for %s, interval=%ss, authenticated=%s",
+        "Bet engine started for %s, interval=%ss, authenticated=%s, demo=%s",
         settings.symbol_list,
         settings.poll_interval_seconds,
         client.authenticated,
+        client.demo,
     )
     while not stop_event.is_set():
         sleep_for = seconds_until_next_run(settings.poll_interval_seconds)
@@ -53,6 +54,7 @@ def main() -> None:
         api_key=settings.okx_api_key,
         api_secret=settings.okx_api_secret,
         api_passphrase=settings.okx_api_passphrase,
+        demo=settings.okx_demo,
     )
 
     stop_event = threading.Event()

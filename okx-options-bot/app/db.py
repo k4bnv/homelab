@@ -29,6 +29,14 @@ CREATE TABLE IF NOT EXISTS bets (
 CREATE INDEX IF NOT EXISTS idx_bets_symbol_status ON bets(symbol, status);
 """
 
+# Additive migrations for columns introduced after the initial schema.
+# ALTER TABLE ADD COLUMN is idempotent-by-catch here since SQLite has no
+# "IF NOT EXISTS" for columns.
+MIGRATIONS = [
+    "ALTER TABLE bets ADD COLUMN entry_order_id TEXT",
+    "ALTER TABLE bets ADD COLUMN exit_order_id TEXT",
+]
+
 
 class BetsDB:
     def __init__(self, path: str) -> None:
@@ -38,6 +46,11 @@ class BetsDB:
         self._conn.row_factory = sqlite3.Row
         self._conn.execute("PRAGMA journal_mode=WAL;")
         self._conn.executescript(SCHEMA)
+        for migration in MIGRATIONS:
+            try:
+                self._conn.execute(migration)
+            except sqlite3.OperationalError:
+                pass  # column already exists
         self._conn.commit()
 
     def open_bet(
@@ -54,13 +67,14 @@ class BetsDB:
         entry_spot: float,
         contracts: float,
         stake_usd: float,
+        entry_order_id: str | None = None,
     ) -> int:
         with self._lock:
             cur = self._conn.execute(
                 """INSERT INTO bets
                    (symbol, direction, inst_id, strike, expiry, bias_score, opened_at,
-                    entry_price, entry_spot, contracts, stake_usd, status)
-                   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'OPEN')""",
+                    entry_price, entry_spot, contracts, stake_usd, entry_order_id, status)
+                   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'OPEN')""",
                 (
                     symbol,
                     direction,
@@ -73,6 +87,7 @@ class BetsDB:
                     entry_spot,
                     contracts,
                     stake_usd,
+                    entry_order_id,
                 ),
             )
             self._conn.commit()
@@ -95,14 +110,24 @@ class BetsDB:
         exit_value_usd: float,
         pnl_usd: float,
         result: str,
+        exit_order_id: str | None = None,
     ) -> None:
         with self._lock:
             self._conn.execute(
                 """UPDATE bets
                    SET status='CLOSED', closed_at=?, exit_price=?, exit_spot=?,
-                       exit_value_usd=?, pnl_usd=?, result=?
+                       exit_value_usd=?, pnl_usd=?, result=?, exit_order_id=?
                    WHERE id=?""",
-                (closed_at, exit_price, exit_spot, exit_value_usd, pnl_usd, result, bet_id),
+                (
+                    closed_at,
+                    exit_price,
+                    exit_spot,
+                    exit_value_usd,
+                    pnl_usd,
+                    result,
+                    exit_order_id,
+                    bet_id,
+                ),
             )
             self._conn.commit()
 
