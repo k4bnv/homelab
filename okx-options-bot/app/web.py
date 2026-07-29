@@ -6,6 +6,7 @@ from pathlib import Path
 from fastapi import FastAPI
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
+from starlette.middleware.base import BaseHTTPMiddleware
 
 from app import stats
 from app.config import Settings
@@ -17,8 +18,20 @@ log = logging.getLogger("okx_options_bot.web")
 STATIC_DIR = Path(__file__).parent / "static"
 
 
+class NoCacheMiddleware(BaseHTTPMiddleware):
+    """Forces browsers/CDNs to revalidate on every request instead of
+    serving a stale cached copy of the dashboard's HTML/JS/CSS."""
+
+    async def dispatch(self, request, call_next):
+        response = await call_next(request)
+        if request.url.path == "/" or request.url.path.startswith("/static/"):
+            response.headers["Cache-Control"] = "no-cache, must-revalidate"
+        return response
+
+
 def create_app(db: BetsDB, settings: Settings, client: OKXClient | None = None) -> FastAPI:
     app = FastAPI(title="OKX Options Bot")
+    app.add_middleware(NoCacheMiddleware)
     app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 
     @app.get("/")

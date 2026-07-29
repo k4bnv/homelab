@@ -46,6 +46,17 @@ def test_index_serves_html(client):
     assert "OKX Options Bot" in resp.text
 
 
+def test_index_sends_no_cache_header(client):
+    resp = client.get("/")
+    assert "no-cache" in resp.headers["cache-control"]
+
+
+def test_static_assets_send_no_cache_header(client):
+    resp = client.get("/static/app.js")
+    assert resp.status_code == 200
+    assert "no-cache" in resp.headers["cache-control"]
+
+
 def test_summary_reflects_closed_bet(client):
     resp = client.get("/api/summary")
     assert resp.status_code == 200
