@@ -149,6 +149,7 @@ homelab/
 ├── portainer/         # Container UI
 ├── lampac/            # Media
 ├── traefik/           # Reverse proxy + TLS
+├── marktplaats-scraper/  # Personal Marktplaats.nl laptop price-watch scraper
 ├── scripts/deploy.sh
 └── README.md
 ```

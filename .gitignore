@@ -5,3 +5,12 @@ acme.json
 traefik/acme/
 **/data/
 **/config/*.local.yaml
+
+# marktplaats-scraper
+marktplaats-scraper/.env
+marktplaats-scraper/data/*.db
+marktplaats-scraper/logs/*.log
+marktplaats-scraper/**/__pycache__/
+marktplaats-scraper/.pytest_cache/
+marktplaats-scraper/.venv/
+marktplaats-scraper/*.json

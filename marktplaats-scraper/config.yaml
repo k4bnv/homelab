@@ -1,0 +1,30 @@
+# Список моделей ноутбуков для фильтрации (регистронезависимый substring-match
+# по заголовку + описанию объявления). Добавляй/убирай строки под свои нужды.
+models:
+  - "thinkpad t480"
+  - "thinkpad t14"
+  - "thinkpad x1 carbon"
+  - "dell latitude 7490"
+  - "macbook pro 2015"
+  - "macbook air m1"
+
+price:
+  min: 0
+  max: 300
+
+search:
+  zipcode: "1011AB"
+  radius_km: 25
+
+# Порог цены, ниже которого шлём алерт в Telegram (в евро)
+alert:
+  price_below: 150
+
+request:
+  max_requests_per_run: 20
+
+storage:
+  db_path: "data/listings.db"
+
+logging:
+  log_path: "logs/scraper.log"

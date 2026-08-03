@@ -1,0 +1,10 @@
+requests>=2.31,<3
+pydantic>=2.5,<3
+PyYAML>=6.0,<7
+python-dotenv>=1.0,<2
+anthropic>=0.40,<1
+beautifulsoup4>=4.12,<5
+lxml>=5.0,<6
+
+# dev/test only
+pytest>=8.0,<9
