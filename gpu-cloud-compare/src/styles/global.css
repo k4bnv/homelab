@@ -1,0 +1,43 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    color-scheme: dark;
+  }
+
+  html {
+    @apply scroll-smooth;
+  }
+
+  body {
+    @apply bg-surface-950 text-slate-200 font-sans antialiased;
+  }
+
+  ::selection {
+    @apply bg-neon-green/30 text-white;
+  }
+
+  /* Slim, dark, always-visible scrollbar so wide comparison tables don't jump layout */
+  ::-webkit-scrollbar {
+    height: 8px;
+    width: 8px;
+  }
+  ::-webkit-scrollbar-track {
+    @apply bg-surface-900;
+  }
+  ::-webkit-scrollbar-thumb {
+    @apply bg-surface-600 rounded-full;
+  }
+}
+
+@layer utilities {
+  .text-gradient-neon {
+    @apply bg-gradient-to-r from-neon-green to-neon-blue bg-clip-text text-transparent;
+  }
+
+  .card {
+    @apply rounded-xl border border-surface-700 bg-surface-900/60 backdrop-blur;
+  }
+}

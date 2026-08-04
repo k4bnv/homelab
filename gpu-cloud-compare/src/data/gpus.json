@@ -1,0 +1,134 @@
+[
+  {
+    "id": "nvidia-h100",
+    "name": "NVIDIA H100",
+    "vendor": "NVIDIA",
+    "vram_gb": 80,
+    "vram_type": "HBM3",
+    "architecture": "Hopper",
+    "cuda_cores": 16896,
+    "tensor_cores": 528,
+    "fp16_tflops": 989,
+    "fp8_tflops": 1979,
+    "memory_bandwidth_gbps": 3350,
+    "nvlink": true,
+    "release_year": 2022,
+    "target_tasks": [
+      "LLM Training",
+      "LLM Fine-tuning",
+      "LLM Inference",
+      "Scientific Computing"
+    ],
+    "description": "The NVIDIA H100 (Hopper) is the current flagship data-center GPU for large-scale LLM training and fine-tuning, offering a transformer engine with FP8 support and 3.35 TB/s of HBM3 bandwidth.",
+    "highlights": [
+      "Fastest option for multi-billion parameter model training",
+      "FP8 transformer engine roughly doubles throughput vs A100",
+      "NVLink/NVSwitch scales cleanly to 8x pods for distributed training"
+    ]
+  },
+  {
+    "id": "nvidia-a100",
+    "name": "NVIDIA A100",
+    "vendor": "NVIDIA",
+    "vram_gb": 80,
+    "vram_type": "HBM2e",
+    "architecture": "Ampere",
+    "cuda_cores": 6912,
+    "tensor_cores": 432,
+    "fp16_tflops": 312,
+    "memory_bandwidth_gbps": 2039,
+    "nvlink": true,
+    "release_year": 2020,
+    "target_tasks": [
+      "LLM Training",
+      "LLM Fine-tuning",
+      "AI Inference",
+      "Scientific Computing"
+    ],
+    "description": "The NVIDIA A100 80GB remains the best price-to-performance workhorse for fine-tuning and mid-size training jobs, with wide availability across every major GPU cloud.",
+    "highlights": [
+      "Best availability-to-price ratio for 7B-70B parameter fine-tuning",
+      "80GB VRAM fits most LLM fine-tuning jobs without sharding",
+      "Mature software stack, zero compatibility surprises"
+    ]
+  },
+  {
+    "id": "nvidia-rtx-4090",
+    "name": "NVIDIA RTX 4090",
+    "vendor": "NVIDIA",
+    "vram_gb": 24,
+    "vram_type": "GDDR6X",
+    "architecture": "Ada Lovelace",
+    "cuda_cores": 16384,
+    "tensor_cores": 512,
+    "fp16_tflops": 330,
+    "memory_bandwidth_gbps": 1008,
+    "nvlink": false,
+    "release_year": 2022,
+    "target_tasks": [
+      "ComfyUI / Stable Diffusion",
+      "3D Rendering",
+      "AI Inference",
+      "Video Editing"
+    ],
+    "description": "The RTX 4090 is a consumer-class card that dominates the price-per-token metric for image generation (ComfyUI, Automatic1111, SDXL) and small-model inference thanks to huge shader throughput at a fraction of data-center pricing.",
+    "highlights": [
+      "Cheapest $/hr for Stable Diffusion / ComfyUI workloads",
+      "24GB VRAM covers SDXL, most 7B-13B quantized inference",
+      "Widely available on spot/marketplace clouds at sub-$0.50/hr"
+    ]
+  },
+  {
+    "id": "nvidia-rtx-a6000",
+    "name": "NVIDIA RTX A6000",
+    "vendor": "NVIDIA",
+    "vram_gb": 48,
+    "vram_type": "GDDR6",
+    "architecture": "Ampere",
+    "cuda_cores": 10752,
+    "tensor_cores": 336,
+    "fp16_tflops": 155,
+    "memory_bandwidth_gbps": 768,
+    "nvlink": true,
+    "release_year": 2021,
+    "target_tasks": [
+      "3D Rendering",
+      "AI Inference",
+      "ComfyUI / Stable Diffusion",
+      "Computer Vision"
+    ],
+    "description": "The RTX A6000 pairs 48GB of VRAM with workstation-grade drivers, making it a favorite for render farms, CAD/DCC pipelines and mid-size inference workloads that need more headroom than a 4090 without H100 pricing.",
+    "highlights": [
+      "48GB VRAM handles larger batches than RTX 4090 for the same task class",
+      "ECC memory and certified drivers for professional rendering pipelines",
+      "Good middle ground between consumer cards and data-center pricing"
+    ]
+  },
+  {
+    "id": "nvidia-l40s",
+    "name": "NVIDIA L40S",
+    "vendor": "NVIDIA",
+    "vram_gb": 48,
+    "vram_type": "GDDR6",
+    "architecture": "Ada Lovelace",
+    "cuda_cores": 18176,
+    "tensor_cores": 568,
+    "fp16_tflops": 362,
+    "fp8_tflops": 733,
+    "memory_bandwidth_gbps": 864,
+    "nvlink": false,
+    "release_year": 2023,
+    "target_tasks": [
+      "AI Inference",
+      "LLM Inference",
+      "3D Rendering",
+      "ComfyUI / Stable Diffusion"
+    ],
+    "description": "The L40S is NVIDIA's Ada-generation data-center card built for inference and mixed graphics/AI workloads, offering strong FP8 throughput and 48GB VRAM at a lower price point than H100.",
+    "highlights": [
+      "Purpose-built for inference and generative AI serving at scale",
+      "48GB VRAM comfortably serves 13B-34B quantized LLMs",
+      "Strong choice when H100 supply is constrained or overkill"
+    ]
+  }
+]

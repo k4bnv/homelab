@@ -1,0 +1,38 @@
+---
+/**
+ * Badge for price/offer type — "Spot", "On-Demand", "Best Price".
+ * Kept as a zero-JS Astro component since it's purely presentational.
+ */
+type Variant = "spot" | "on-demand" | "best-price" | "neutral";
+
+interface Props {
+  variant: Variant;
+  class?: string;
+}
+
+const { variant, class: className = "" } = Astro.props;
+
+const styles: Record<Variant, string> = {
+  spot: "border-neon-blue/40 bg-neon-blue/10 text-neon-blue",
+  "on-demand": "border-surface-500 bg-surface-700/60 text-slate-300",
+  "best-price": "border-neon-green/50 bg-neon-green/10 text-neon-green shadow-neon-green",
+  neutral: "border-surface-600 bg-surface-800 text-slate-400",
+};
+
+const labels: Record<Variant, string> = {
+  spot: "Spot",
+  "on-demand": "On-Demand",
+  "best-price": "Best Price",
+  neutral: "",
+};
+---
+
+<span
+  class:list={[
+    "inline-flex items-center gap-1 whitespace-nowrap rounded-full border px-2 py-0.5 text-xs font-semibold",
+    styles[variant],
+    className,
+  ]}
+>
+  <slot>{labels[variant]}</slot>
+</span>

@@ -1,0 +1,25 @@
+---
+/** Primary conversion CTA — used for every affiliate "Rent for $X/hr" link. */
+interface Props {
+  href: string;
+  variant?: "primary" | "secondary";
+  class?: string;
+  rel?: string;
+}
+
+const { href, variant = "primary", class: className = "", rel = "sponsored noopener" } =
+  Astro.props;
+
+const base =
+  "inline-flex items-center justify-center gap-1.5 rounded-lg px-4 py-2 text-sm font-semibold transition-all whitespace-nowrap";
+const variants = {
+  primary:
+    "bg-neon-green text-surface-950 hover:shadow-neon-green hover:brightness-110 active:brightness-95",
+  secondary:
+    "border border-neon-blue/40 bg-neon-blue/10 text-neon-blue hover:bg-neon-blue/20",
+};
+---
+
+<a href={href} target="_blank" rel={rel} class:list={[base, variants[variant], className]}>
+  <slot />
+</a>

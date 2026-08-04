@@ -106,6 +106,8 @@ git push → test (pytest) → build (docker build) → deploy (docker compose u
 
 Pet project: [shelly-temp-monitor](https://github.com/k4bnv/shelly-temp-monitor) — Shelly temperature sensor webhook with email alerts.
 
+Pet project: [gpu-cloud-compare](gpu-cloud-compare/) — Astro + React pSEO price-comparison site for GPU cloud rental (RunPod, Vast.ai, TensorDock, Lambda Labs, CoreWeave).
+
 ## Quick Start
 
 ```bash
@@ -149,6 +151,7 @@ homelab/
 ├── portainer/         # Container UI
 ├── lampac/            # Media
 ├── traefik/           # Reverse proxy + TLS
+├── gpu-cloud-compare/ # Pet project: GPU cloud rental price comparison (Astro)
 ├── scripts/deploy.sh
 └── README.md
 ```
