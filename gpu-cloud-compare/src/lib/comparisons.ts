@@ -21,6 +21,18 @@ function pairSlug(aId: string, bId: string): string {
   return `${aId}-vs-${bId}`;
 }
 
+/**
+ * Canonical `/compare/[slug]` for any two ids, alphabetically ordered.
+ * `getAllComparisonSlugs()` only generates the alphabetical pairing, so any
+ * interlinking code (GPU page "compare with", footer provider links, etc.)
+ * MUST go through this helper — building `${a}-vs-${b}` directly can link
+ * to a page that was never statically generated.
+ */
+export function canonicalPairSlug(idA: string, idB: string): string {
+  const [a, b] = [idA, idB].sort((x, y) => x.localeCompare(y));
+  return pairSlug(a, b);
+}
+
 /** All unique unordered pairs from a list, alphabetically ordered for a stable canonical slug. */
 function uniquePairs<T>(items: T[], keyOf: (item: T) => string): [T, T][] {
   const sorted = [...items].sort((a, b) => keyOf(a).localeCompare(keyOf(b)));

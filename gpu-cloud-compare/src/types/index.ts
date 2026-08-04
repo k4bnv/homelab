@@ -27,6 +27,10 @@ export interface GPU {
   vram_gb: number;
   vram_type: "HBM3" | "HBM2e" | "GDDR6X" | "GDDR6";
   architecture: string;
+  /** Thermal design power in watts, e.g. 700 */
+  tdp_watts: number;
+  /** Physical form factor, e.g. "SXM5", "PCIe 4.0" */
+  interface: string;
   cuda_cores?: number;
   tensor_cores?: number;
   fp16_tflops?: number;

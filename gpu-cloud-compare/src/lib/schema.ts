@@ -41,9 +41,11 @@ export function faqSchema(faqs: FaqItem[]) {
 }
 
 /**
- * Product + AggregateRating + Offer schema for a GPU detail page, using
- * the cheapest current offer as the canonical `Offer` and a
- * rating/review-count weighted average across all providers renting it.
+ * Product + AggregateOffer + AggregateRating schema for a GPU detail page.
+ * `offers` is a plain `AggregateOffer` (lowPrice/highPrice/offerCount) —
+ * schema.org doesn't define a per-seller `offers` list nested inside
+ * AggregateOffer, so we keep this strictly to the documented properties.
+ * Rating is a review-count-weighted average across all providers renting it.
  */
 export function gpuProductSchema(gpu: GPU, offers: ComputedOffer[]) {
   if (offers.length === 0) return null;
@@ -52,9 +54,7 @@ export function gpuProductSchema(gpu: GPU, offers: ComputedOffer[]) {
   const weightedRating =
     offers.reduce((sum, o) => sum + o.rating * o.review_count, 0) / totalReviews;
 
-  const cheapest = [...offers].sort(
-    (a, b) => a.price_on_demand - b.price_on_demand
-  )[0];
+  const prices = offers.map((o) => o.price_on_demand);
 
   return {
     "@context": "https://schema.org",
@@ -75,19 +75,9 @@ export function gpuProductSchema(gpu: GPU, offers: ComputedOffer[]) {
     offers: {
       "@type": "AggregateOffer",
       priceCurrency: "USD",
-      lowPrice: cheapest.price_on_demand,
-      highPrice: Math.max(...offers.map((o) => o.price_on_demand)),
+      lowPrice: Math.min(...prices),
+      highPrice: Math.max(...prices),
       offerCount: offers.length,
-      offers: offers.map((o) => ({
-        "@type": "Offer",
-        url: o.affiliate_url,
-        price: o.price_on_demand,
-        priceCurrency: "USD",
-        seller: {
-          "@type": "Organization",
-          name: o.name,
-        },
-      })),
     },
   };
 }

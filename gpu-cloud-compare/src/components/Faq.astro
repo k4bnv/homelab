@@ -6,10 +6,12 @@ import type { FaqItem } from "@/types";
 interface Props {
   faqs: FaqItem[];
   title?: string;
+  /** Set false when a parent component (e.g. GpuSeoSchema) already emits this FAQPage. */
+  emitSchema?: boolean;
 }
 
-const { faqs, title = "Frequently Asked Questions" } = Astro.props;
-const schema = faqSchema(faqs);
+const { faqs, title = "Frequently Asked Questions", emitSchema = true } = Astro.props;
+const schema = emitSchema ? faqSchema(faqs) : null;
 ---
 
 <JsonLd schema={schema} />

@@ -6,10 +6,12 @@ import { breadcrumbSchema, type BreadcrumbCrumb } from "@/lib/schema";
 
 interface Props {
   crumbs: BreadcrumbCrumb[];
+  /** Set false when a parent component (e.g. GpuSeoSchema) already emits this BreadcrumbList. */
+  emitSchema?: boolean;
 }
 
-const { crumbs } = Astro.props;
-const schema = breadcrumbSchema(crumbs);
+const { crumbs, emitSchema = true } = Astro.props;
+const schema = emitSchema ? breadcrumbSchema(crumbs) : null;
 ---
 
 <JsonLd schema={schema} />

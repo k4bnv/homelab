@@ -1,0 +1,43 @@
+---
+import { buildCostBreakdown, BASE_DISK_GB } from "@/lib/pricing";
+import { formatUsd } from "@/lib/data";
+import type { ComputedOffer, GPU } from "@/types";
+
+interface Props {
+  gpu: GPU;
+  /** The offer this calculator is based on — pass the cheapest/best-value one. */
+  offer: ComputedOffer;
+}
+
+const { gpu, offer } = Astro.props;
+const rows = buildCostBreakdown(offer.price_on_demand, offer.storage_cost_per_gb);
+---
+
+<section class="mt-12">
+  <h2 class="mb-1 text-xl font-bold text-white">Cost of Running {gpu.name}</h2>
+  <p class="mb-4 text-sm text-slate-500">
+    Based on {offer.name}'s on-demand rate ({formatUsd(offer.price_on_demand)}/hr) plus a {BASE_DISK_GB}GB
+    persistent disk at {formatUsd(offer.storage_cost_per_gb, 2)}/GB/month.
+  </p>
+
+  <div class="grid gap-4 sm:grid-cols-3">
+    {rows.map((row) => (
+      <div class="card p-5">
+        <p class="text-xs uppercase tracking-wide text-slate-500">{row.label}</p>
+        <p class="mt-2 font-mono text-2xl font-extrabold text-neon-green">
+          {formatUsd(row.totalCost)}
+        </p>
+        <dl class="mt-3 space-y-1 text-xs text-slate-500">
+          <div class="flex justify-between">
+            <dt>Compute ({row.hours}h)</dt>
+            <dd class="font-mono text-slate-400">{formatUsd(row.computeCost)}</dd>
+          </div>
+          <div class="flex justify-between">
+            <dt>Storage ({BASE_DISK_GB}GB)</dt>
+            <dd class="font-mono text-slate-400">{formatUsd(row.storageCost)}</dd>
+          </div>
+        </dl>
+      </div>
+    ))}
+  </div>
+</section>

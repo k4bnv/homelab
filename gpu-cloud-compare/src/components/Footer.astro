@@ -1,5 +1,6 @@
 ---
 import { getAllGpus, getAllProviders } from "@/lib/data";
+import { canonicalPairSlug } from "@/lib/comparisons";
 import useCasesData from "@/data/use-cases.json";
 
 const gpuList = getAllGpus();
@@ -22,13 +23,15 @@ const year = new Date().getFullYear();
     <div>
       <p class="mb-3 text-sm font-semibold text-slate-300">Providers</p>
       <ul class="space-y-2 text-sm text-slate-500">
-        {providerList.map((provider) => (
-          <li>
-            <a href={`/compare/${provider.slug}-vs-${providerList.find((p) => p.slug !== provider.slug)?.slug}/`} class="hover:text-neon-blue">
-              {provider.name}
-            </a>
-          </li>
-        ))}
+        {providerList.map((provider) => {
+          const other = providerList.find((p) => p.slug !== provider.slug);
+          const href = other ? `/compare/${canonicalPairSlug(provider.slug, other.slug)}/` : "/";
+          return (
+            <li>
+              <a href={href} class="hover:text-neon-blue">{provider.name}</a>
+            </li>
+          );
+        })}
       </ul>
     </div>
 
