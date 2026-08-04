@@ -127,41 +127,60 @@ repo's Actions secrets:
 You don't need both — if you're self-hosting with Docker, you can disable
 or delete this workflow.
 
-## Affiliate links
+## Configuration via environment variables
 
-Every `affiliate_url` in `src/data/providers.json` ships as a
-`?ref=AFFILIATE_ID` placeholder — swap in your real referral links via
-environment variables instead of editing that committed file. Copy
-[`.env.example`](.env.example) to `.env` and fill in the ones you have:
+Both of these are read once at build time (`src/lib/loadEnv.ts` +
+`src/lib/seo.ts` / `src/lib/data.ts`, and `astro.config.mjs` for
+`SITE_URL` specifically) and baked into every generated page — there's no
+client-side lookup, so they work identically however you build. Copy
+[`.env.example`](.env.example) to `.env` and fill in what you need:
 
 ```bash
 cp .env.example .env
-# edit .env — one line per provider, e.g.:
-# AFFILIATE_URL_RUNPOD=https://runpod.io/?ref=YOUR_REAL_ID
+```
+
+- **Docker (recommended for self-hosting):** put `.env` next to
+  `docker-compose.yaml` — Compose reads it automatically for the entries
+  already wired into the `environment:` block, so it's picked up on every
+  `docker compose up -d --build` and on every in-container resync (see
+  below).
+- **Local `npm run dev` / `npm run build`:** the same `.env` at the
+  project root works too — a small dependency-free loader
+  (`src/lib/loadEnv.ts`) reads it into `process.env` (Astro/Vite's own
+  dotenv handling only exposes `PUBLIC_`-prefixed vars to build code,
+  which these deliberately aren't, so this project loads the file
+  itself instead).
+- **CI (`.github/workflows/daily-sync.yml`):** set these as real repo
+  Actions secrets/variables and pass them through to the sync step the
+  same way `RUNPOD_API_KEY` is, if you're using that path instead.
+
+### Site domain
+
+`SITE_URL` controls the domain baked into `sitemap.xml`, every page's
+`<link rel="canonical">`, and OpenGraph/Twitter tags. Defaults to
+`https://gpu.kolyachaba.top` (both `astro.config.mjs` and
+`src/lib/seo.ts` — keep them in sync if you change the default). Set it
+to whatever domain you're actually deploying to:
+
+```bash
+SITE_URL=https://your-domain.example
+```
+
+### Affiliate links
+
+Every `affiliate_url` in `src/data/providers.json` ships as a
+`?ref=AFFILIATE_ID` placeholder — swap in your real referral links via
+environment variables instead of editing that committed file:
+
+```bash
+# one line per provider, e.g.:
+AFFILIATE_URL_RUNPOD=https://runpod.io/?ref=YOUR_REAL_ID
 ```
 
 The convention is `AFFILIATE_URL_<SLUG>` — the provider's `slug` field
 from `providers.json`, uppercased with hyphens as underscores (`vast-ai` →
 `AFFILIATE_URL_VAST_AI`). Any provider left unset keeps the placeholder
 URL; nothing breaks if you only have deals with some providers.
-
-This is read in `src/lib/data.ts`, applied once at build time to every
-generated page — there's no client-side lookup, so it works identically
-however you build:
-
-- **Docker (recommended for self-hosting):** put `.env` next to
-  `docker-compose.yaml` — Compose reads it automatically for the
-  `AFFILIATE_URL_*` entries already wired into the `environment:` block,
-  so it's picked up on every `docker compose up -d --build` and on every
-  in-container resync (see below).
-- **Local `npm run dev` / `npm run build`:** the same `.env` at the
-  project root works too — `src/lib/data.ts` includes a small
-  dependency-free loader for it (Astro/Vite's own dotenv handling only
-  exposes `PUBLIC_`-prefixed vars to build code, which these deliberately
-  aren't, so this project loads the file itself instead).
-- **CI (`.github/workflows/daily-sync.yml`):** set these as real repo
-  Actions secrets/variables and pass them through to the sync step the
-  same way `RUNPOD_API_KEY` is, if you're using that path instead.
 
 ## Self-hosting with Docker
 
@@ -201,6 +220,7 @@ Environment variables (set in `docker-compose.yaml`):
 |---|---|---|
 | `SYNC_INTERVAL_HOURS` | `6` | Hours between in-container price syncs |
 | `RUNPOD_API_KEY` | unset | Optional — enables the RunPod fetcher (see above) |
+| `SITE_URL` | `https://gpu.kolyachaba.top` | Domain for sitemap/canonical/OG tags, see [Site domain](#site-domain) |
 | `AFFILIATE_URL_*` | unset | Optional — your real referral links, see [Affiliate links](#affiliate-links) |
 
 Image layout: `node:20-alpine` + `nginx`, `docker build` bakes one initial

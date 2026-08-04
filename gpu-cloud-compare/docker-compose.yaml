@@ -12,6 +12,9 @@ services:
       # Optional. The RunPod fetcher just skips itself (not an error)
       # when this is unset — see scripts/fetch-prices.ts.
       - RUNPOD_API_KEY=${RUNPOD_API_KEY:-}
+      # Optional — production domain for sitemap/canonical/OG tags. Falls
+      # back to https://gpu.kolyachaba.top (src/lib/seo.ts) if unset.
+      - SITE_URL=${SITE_URL:-}
       # Optional real affiliate/referral links — override the
       # "?ref=AFFILIATE_ID" placeholder baked into src/data/providers.json
       # per-provider, without editing/committing that file. See .env.example

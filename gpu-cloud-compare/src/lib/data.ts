@@ -1,35 +1,8 @@
-import { existsSync, readFileSync } from "node:fs";
-import path from "node:path";
+import "@/lib/loadEnv";
 import gpusJson from "@/data/gpus.json";
 import providersJson from "@/data/providers.json";
 import useCasesJson from "@/data/use-cases.json";
 import type { ComputedOffer, GPU, Provider, UseCase } from "@/types";
-
-/**
- * Minimal, dependency-free ".env" loader for local `astro dev`/`astro
- * build` runs. Astro/Vite's own dotenv handling only exposes
- * `PUBLIC_`-prefixed vars to `import.meta.env` and doesn't sync arbitrary
- * names into `process.env`, so a plain var like `AFFILIATE_URL_RUNPOD` in
- * a project-root `.env` file wouldn't otherwise be visible to this file.
- * Real environment variables (Docker `environment:`, CI secrets, a shell
- * `export`) already land in `process.env` without this — this only fills
- * the gap for a local `.env` file, and never overrides a var that's
- * already set for real.
- */
-function loadDotEnvIntoProcessEnv(): void {
-  const envPath = path.resolve(process.cwd(), ".env");
-  if (!existsSync(envPath)) return;
-
-  for (const line of readFileSync(envPath, "utf-8").split("\n")) {
-    const match = line.match(/^\s*([\w.-]+)\s*=\s*(.*?)\s*$/);
-    if (!match) continue;
-    const [, key, rawValue] = match;
-    if (key.startsWith("#") || process.env[key] !== undefined) continue;
-    process.env[key] = rawValue.replace(/^(['"])(.*)\1$/, "$2"); // strip surrounding quotes
-  }
-}
-
-loadDotEnvIntoProcessEnv();
 
 // `satisfies` (not `as`) so a shape mismatch in the JSON fixtures fails
 // `astro check` instead of silently widening to `any`.
