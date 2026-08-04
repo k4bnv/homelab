@@ -41,7 +41,7 @@ export interface GPU {
   name: string;
   vendor: "NVIDIA" | "AMD";
   vram_gb: number;
-  vram_type: "HBM3" | "HBM2e" | "GDDR6X" | "GDDR6";
+  vram_type: "HBM3e" | "HBM3" | "HBM2e" | "HBM2" | "GDDR7" | "GDDR6X" | "GDDR6";
   architecture: string;
   /** Thermal design power in watts, e.g. 700 */
   tdp_watts: number;
