@@ -95,6 +95,7 @@ Internet → Cloudflare DNS → Router :443 → Traefik (TLS)
 | [Lampac](lampac/) | Media streaming | http://192.168.178.194:9118 |
 | [Shelly Temp Monitor](https://github.com/k4bnv/shelly-temp-monitor) | IoT webhook + email alerts | https://temp.kolyachaba.top |
 | GitLab CE | Source control + CI/CD | https://gitlab.kolyachaba.top |
+| [GPU Cloud Compare](gpu-cloud-compare/) | GPU rental price comparison (self-updating) | https://gpu.kolyachaba.top |
 
 ## CI/CD
 
@@ -127,6 +128,7 @@ cd homepage && docker compose up -d
 cd ../uptime-kuma && docker compose up -d
 cp vaultwarden/.env.example vaultwarden/.env   # edit first
 cd ../vaultwarden && docker compose up -d
+cd ../gpu-cloud-compare && docker compose up -d --build
 ```
 
 ## Uptime Kuma — monitors
@@ -140,6 +142,7 @@ cd ../vaultwarden && docker compose up -d
 | GitLab | https://gitlab.kolyachaba.top |
 | Traefik | https://traefik.kolyachaba.top |
 | Lampac | http://192.168.178.194:9118 |
+| GPU Cloud Compare | https://gpu.kolyachaba.top |
 
 ## Repo Structure
 

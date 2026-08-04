@@ -49,6 +49,13 @@ http:
       tls:
         certResolver: cloudflare
 
+    gpu-compare:
+      rule: "Host(`gpu.kolyachaba.top`)"
+      entryPoints: [websecure]
+      service: gpu-compare
+      tls:
+        certResolver: cloudflare
+
   services:
     homepage:
       loadBalancer:
@@ -79,3 +86,8 @@ http:
       loadBalancer:
         servers:
           - url: "http://192.168.178.122:80"
+
+    gpu-compare:
+      loadBalancer:
+        servers:
+          - url: "http://gpu-cloud-compare:80"

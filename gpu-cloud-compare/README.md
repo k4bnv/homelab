@@ -102,15 +102,75 @@ Required for the RunPod integration:
 RUNPOD_API_KEY=...  npm run sync-prices
 ```
 
-### Scheduled sync (`.github/workflows/daily-sync.yml`)
+Two ways to keep this running on a schedule — pick one:
 
-Runs `sync-prices` every 6 hours (plus on-demand via `workflow_dispatch`),
-and commits `src/data/*.json` straight to `main` when prices actually
-changed. Configure in the repo's Actions secrets:
+### Option A — Self-hosted Docker (no CI, no GitHub required)
+
+See **[Self-hosting with Docker](#self-hosting-with-docker)** below. The
+container re-syncs and rebuilds itself on an interval — nothing needs to
+push to `main` or run in GitHub Actions.
+
+### Option B — Static host + GitHub Actions (`.github/workflows/daily-sync.yml`)
+
+For deploying to Vercel/Netlify/Cloudflare Pages instead: the workflow runs
+`sync-prices` every 6 hours (plus on-demand via `workflow_dispatch`) and
+commits `src/data/*.json` straight to `main` when prices actually changed,
+which triggers the host's normal git-push auto-deploy. Configure in the
+repo's Actions secrets:
 
 - `RUNPOD_API_KEY` — optional, enables the RunPod fetcher.
-- `DEPLOY_HOOK_URL` — optional, a Vercel/Netlify/Cloudflare Pages deploy
-  hook POSTed after a successful price commit. Skipped (not failed) if unset.
+- `DEPLOY_HOOK_URL` — optional, a platform deploy hook POSTed after a
+  successful price commit (useful if the host doesn't auto-deploy on push).
+  Skipped (not failed) if unset.
+
+You don't need both — if you're self-hosting with Docker, you can disable
+or delete this workflow.
+
+## Self-hosting with Docker
+
+One container, no external CI: `docker/entrypoint.sh` re-runs
+`npm run sync-prices` + rebuilds the Astro site **inside the running
+container** on an interval, and nginx serves the result. Nothing pushes to
+GitHub and nothing needs to redeploy the image for prices to stay fresh.
+
+```bash
+cd gpu-cloud-compare
+docker compose up -d --build
+```
+
+This repo's `docker-compose.yaml` joins the shared `frontend` network used
+by every other service in this homelab (see [repo root
+README](../README.md)) and publishes port 8090 on the host. Traefik already
+has a route configured for it at `gpu.kolyachaba.top` in
+`../traefik/dynamic/services.yml` — adjust or remove that if you're hosting
+elsewhere. Without Traefik, hit it directly at `http://<host>:8090`.
+
+**How the refresh loop works** (`docker/entrypoint.sh`):
+
+1. On container start, and then every `SYNC_INTERVAL_HOURS` (default `6`,
+   set in `docker-compose.yaml`): runs `npm run sync-prices`, then
+   `astro build` into `dist.new/`.
+2. On success, atomically swaps `dist.new/` in for `dist/` (`mv` on the
+   same filesystem) — nginx, which serves straight from `/app/dist`, never
+   sees a half-written directory and needs no restart to pick up the
+   change.
+3. On failure (a provider API down, a bad build), the currently-served
+   `dist/` is left completely untouched — a bad sync never takes the site
+   offline.
+
+Environment variables (set in `docker-compose.yaml`):
+
+| Variable | Default | Purpose |
+|---|---|---|
+| `SYNC_INTERVAL_HOURS` | `6` | Hours between in-container price syncs |
+| `RUNPOD_API_KEY` | unset | Optional — enables the RunPod fetcher (see above) |
+
+Image layout: `node:20-alpine` + `nginx`, `docker build` bakes one initial
+`dist/` (this is the only point `astro check` runs — a broken build fails
+`docker build`, not a live container), then `docker/entrypoint.sh` takes
+over both serving and the refresh loop at runtime. There's no multi-stage
+slim final image, since the container needs the full Node toolchain
+present at runtime to keep rebuilding, not just to serve static files.
 
 ## SEO
 

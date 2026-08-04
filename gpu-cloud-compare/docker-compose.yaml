@@ -1,0 +1,20 @@
+services:
+  gpu-cloud-compare:
+    container_name: gpu-cloud-compare
+    build: .
+    restart: unless-stopped
+    ports:
+      - "8090:80"
+    environment:
+      # Hours between in-container price syncs (fetch + rebuild). No
+      # GitHub Action, no external CI — see docker/entrypoint.sh.
+      - SYNC_INTERVAL_HOURS=6
+      # Optional. The RunPod fetcher just skips itself (not an error)
+      # when this is unset — see scripts/fetch-prices.ts.
+      - RUNPOD_API_KEY=${RUNPOD_API_KEY:-}
+    networks:
+      - frontend
+
+networks:
+  frontend:
+    external: true

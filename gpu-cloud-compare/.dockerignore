@@ -1,0 +1,9 @@
+node_modules
+dist
+.astro
+.git
+.gitignore
+*.md
+.env
+.env.production
+npm-debug.log*
