@@ -196,16 +196,18 @@ docker compose up -d --build
 
 This repo's `docker-compose.yaml` joins the shared `frontend` network used
 by every other service in this homelab (see [repo root
-README](../README.md)) and publishes port 8090 on the host. Traefik already
-has a route configured for it at `gpucompare.cloud` in
-`../traefik/dynamic/services.yml` — adjust or remove that if you're hosting
-elsewhere. Without Traefik, hit it directly at `http://<host>:8090`.
+README](../README.md)) and publishes port 8090 on the host
+(`http://<LXC-100-IP>:8090`).
 
-**DNS note:** `gpucompare.cloud` is a separate domain from this homelab's
-`kolyachaba.top` — the Traefik `cloudflare` cert resolver only works for it
-once its zone is added to the same Cloudflare account the `CF_DNS_API_TOKEN`
-covers (nameservers pointed at Cloudflare, zone active). Until then the
-ACME DNS-01 challenge for this router will fail.
+**`gpucompare.cloud` is intentionally NOT routed through Traefik.** It's
+served via a Cloudflare Tunnel elsewhere in this Proxmox setup (not part
+of this repo) — that tunnel's Public Hostname config points
+`gpucompare.cloud` at this container's published port
+(`http://192.168.178.194:8090`). Cloudflare terminates TLS at its edge and
+tunnels the connection out directly, so there's no port-forwarding, no
+Traefik entryPoint, and no ACME cert resolver involved for this domain at
+all (unlike every other `*.kolyachaba.top` service in this repo, which do
+go through Traefik).
 
 **How the refresh loop works** (`docker/entrypoint.sh`):
 
