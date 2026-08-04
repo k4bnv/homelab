@@ -1,0 +1,27 @@
+---
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import { buildMeta } from "@/lib/seo";
+
+const meta = buildMeta({
+  title: "Page Not Found",
+  description: "The page you're looking for doesn't exist.",
+  canonicalPath: "/404/",
+});
+---
+
+<BaseLayout meta={meta}>
+  <div class="mx-auto flex max-w-2xl flex-col items-center px-4 py-32 text-center">
+    <p class="font-mono text-sm text-neon-green">404</p>
+    <h1 class="mt-2 text-3xl font-extrabold text-white">Page not found</h1>
+    <p class="mt-3 text-slate-400">
+      That GPU or provider isn't in our comparison yet. Head back to the homepage to browse the
+      full list.
+    </p>
+    <a
+      href="/"
+      class="mt-6 rounded-lg bg-neon-green px-4 py-2 text-sm font-semibold text-surface-950 transition hover:shadow-neon-green"
+    >
+      Back to homepage
+    </a>
+  </div>
+</BaseLayout>

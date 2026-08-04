@@ -95,6 +95,7 @@ Internet → Cloudflare DNS → Router :443 → Traefik (TLS)
 | [Lampac](lampac/) | Media streaming | http://192.168.178.194:9118 |
 | [Shelly Temp Monitor](https://github.com/k4bnv/shelly-temp-monitor) | IoT webhook + email alerts | https://temp.kolyachaba.top |
 | GitLab CE | Source control + CI/CD | https://gitlab.kolyachaba.top |
+| [GPUCompare.cloud](gpu-cloud-compare/) | GPU rental price comparison (self-updating) | https://gpucompare.cloud |
 
 ## CI/CD
 
@@ -105,6 +106,8 @@ git push → test (pytest) → build (docker build) → deploy (docker compose u
 ```
 
 Pet project: [shelly-temp-monitor](https://github.com/k4bnv/shelly-temp-monitor) — Shelly temperature sensor webhook with email alerts.
+
+Pet project: [gpu-cloud-compare](gpu-cloud-compare/) — Astro + React pSEO price-comparison site for GPU cloud rental (RunPod, Vast.ai, TensorDock, Lambda Labs, CoreWeave).
 
 ## Quick Start
 
@@ -125,6 +128,7 @@ cd homepage && docker compose up -d
 cd ../uptime-kuma && docker compose up -d
 cp vaultwarden/.env.example vaultwarden/.env   # edit first
 cd ../vaultwarden && docker compose up -d
+cd ../gpu-cloud-compare && docker compose up -d --build
 ```
 
 ## Uptime Kuma — monitors
@@ -138,6 +142,7 @@ cd ../vaultwarden && docker compose up -d
 | GitLab | https://gitlab.kolyachaba.top |
 | Traefik | https://traefik.kolyachaba.top |
 | Lampac | http://192.168.178.194:9118 |
+| GPUCompare.cloud | https://gpucompare.cloud |
 
 ## Repo Structure
 
@@ -149,6 +154,7 @@ homelab/
 ├── portainer/         # Container UI
 ├── lampac/            # Media
 ├── traefik/           # Reverse proxy + TLS
+├── gpu-cloud-compare/ # Pet project: GPU cloud rental price comparison (Astro)
 ├── scripts/deploy.sh
 └── README.md
 ```

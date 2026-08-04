@@ -1,0 +1,35 @@
+---
+import Header from "@/components/Header.astro";
+import Footer from "@/components/Footer.astro";
+import SeoHead from "@/components/SeoHead.astro";
+import JsonLd from "@/components/JsonLd.astro";
+import type { SeoMeta } from "@/types";
+import "@/styles/global.css";
+
+interface Props {
+  meta: SeoMeta;
+  /** Extra JSON-LD schema(s) for this specific page (Product, FAQPage, etc.) */
+  schema?: Record<string, unknown> | Record<string, unknown>[] | null;
+}
+
+const { meta, schema = null } = Astro.props;
+---
+
+<!doctype html>
+<html lang="en" class="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="generator" content={Astro.generator} />
+    <SeoHead meta={meta} />
+    <JsonLd schema={schema} />
+  </head>
+  <body class="flex min-h-screen flex-col bg-grid-fade bg-no-repeat">
+    <Header />
+    <main class="flex-1">
+      <slot />
+    </main>
+    <Footer />
+  </body>
+</html>

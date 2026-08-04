@@ -1,0 +1,451 @@
+[
+  {
+    "id": "nvidia-b200",
+    "name": "NVIDIA B200",
+    "vendor": "NVIDIA",
+    "vram_gb": 192,
+    "vram_type": "HBM3e",
+    "architecture": "Blackwell",
+    "tdp_watts": 1000,
+    "interface": "SXM6",
+    "fp16_tflops": 990,
+    "fp8_tflops": 4500,
+    "memory_bandwidth_gbps": 8000,
+    "nvlink": true,
+    "release_year": 2025,
+    "target_tasks": [
+      "LLM Training",
+      "LLM Fine-tuning",
+      "Scientific Computing"
+    ],
+    "description": "The NVIDIA B200 (Blackwell) is the current flagship data-center GPU, built for frontier-scale LLM pre-training with 192GB of HBM3e and a second-generation transformer engine.",
+    "highlights": [
+      "Highest raw training throughput of any card we track — built for trillion-parameter-class models",
+      "192GB HBM3e means far less model/pipeline sharding than H100 or H200 pods",
+      "Limited early supply keeps prices premium versus Hopper-generation cards"
+    ]
+  },
+  {
+    "id": "nvidia-h200",
+    "name": "NVIDIA H200",
+    "vendor": "NVIDIA",
+    "vram_gb": 141,
+    "vram_type": "HBM3e",
+    "architecture": "Hopper",
+    "tdp_watts": 700,
+    "interface": "SXM5",
+    "cuda_cores": 16896,
+    "tensor_cores": 528,
+    "fp16_tflops": 989,
+    "fp8_tflops": 1979,
+    "memory_bandwidth_gbps": 4800,
+    "nvlink": true,
+    "release_year": 2024,
+    "target_tasks": [
+      "LLM Training",
+      "LLM Fine-tuning",
+      "LLM Inference",
+      "Scientific Computing"
+    ],
+    "description": "The NVIDIA H200 keeps the H100's compute but nearly doubles memory (141GB HBM3e) and bandwidth (4.8TB/s), making it the better choice once a model or its KV cache no longer comfortably fits an 80GB card.",
+    "highlights": [
+      "76% more VRAM and 43% more bandwidth than H100 at the same compute",
+      "Drop-in upgrade path from H100 — same Hopper transformer engine and software stack",
+      "Serves larger context windows / batch sizes per GPU for LLM inference"
+    ]
+  },
+  {
+    "id": "nvidia-h100",
+    "name": "NVIDIA H100",
+    "vendor": "NVIDIA",
+    "vram_gb": 80,
+    "vram_type": "HBM3",
+    "architecture": "Hopper",
+    "tdp_watts": 700,
+    "interface": "SXM5",
+    "cuda_cores": 16896,
+    "tensor_cores": 528,
+    "fp16_tflops": 989,
+    "fp8_tflops": 1979,
+    "memory_bandwidth_gbps": 3350,
+    "nvlink": true,
+    "release_year": 2022,
+    "target_tasks": [
+      "LLM Training",
+      "LLM Fine-tuning",
+      "LLM Inference",
+      "Scientific Computing"
+    ],
+    "description": "The NVIDIA H100 (Hopper) is the current flagship data-center GPU for large-scale LLM training and fine-tuning, offering a transformer engine with FP8 support and 3.35 TB/s of HBM3 bandwidth.",
+    "highlights": [
+      "Fastest option for multi-billion parameter model training",
+      "FP8 transformer engine roughly doubles throughput vs A100",
+      "NVLink/NVSwitch scales cleanly to 8x pods for distributed training"
+    ]
+  },
+  {
+    "id": "amd-mi300x",
+    "name": "AMD MI300X",
+    "vendor": "AMD",
+    "vram_gb": 192,
+    "vram_type": "HBM3",
+    "architecture": "CDNA 3",
+    "tdp_watts": 750,
+    "interface": "OAM",
+    "fp16_tflops": 1307,
+    "fp8_tflops": 2615,
+    "memory_bandwidth_gbps": 5300,
+    "nvlink": false,
+    "release_year": 2023,
+    "target_tasks": [
+      "LLM Training",
+      "LLM Inference",
+      "Scientific Computing"
+    ],
+    "description": "AMD's MI300X is the main non-NVIDIA option for large-model serving, pairing 192GB of HBM3 with ROCm software support — a real alternative when H100/H200 capacity is constrained or pricier.",
+    "highlights": [
+      "192GB VRAM rivals B200/MI300X-class cards at typically lower $/hr than Hopper",
+      "Best fit for teams already validated on ROCm/ONNX Runtime rather than pure CUDA",
+      "Fewer providers carry it, so availability is more limited than NVIDIA options"
+    ]
+  },
+  {
+    "id": "nvidia-a100",
+    "name": "NVIDIA A100",
+    "vendor": "NVIDIA",
+    "vram_gb": 80,
+    "vram_type": "HBM2e",
+    "architecture": "Ampere",
+    "tdp_watts": 400,
+    "interface": "SXM4",
+    "cuda_cores": 6912,
+    "tensor_cores": 432,
+    "fp16_tflops": 312,
+    "memory_bandwidth_gbps": 2039,
+    "nvlink": true,
+    "release_year": 2020,
+    "target_tasks": [
+      "LLM Training",
+      "LLM Fine-tuning",
+      "AI Inference",
+      "Scientific Computing"
+    ],
+    "description": "The NVIDIA A100 80GB remains the best price-to-performance workhorse for fine-tuning and mid-size training jobs, with wide availability across every major GPU cloud.",
+    "highlights": [
+      "Best availability-to-price ratio for 7B-70B parameter fine-tuning",
+      "80GB VRAM fits most LLM fine-tuning jobs without sharding",
+      "Mature software stack, zero compatibility surprises"
+    ]
+  },
+  {
+    "id": "nvidia-rtx-6000-ada",
+    "name": "NVIDIA RTX 6000 Ada",
+    "vendor": "NVIDIA",
+    "vram_gb": 48,
+    "vram_type": "GDDR6",
+    "architecture": "Ada Lovelace",
+    "tdp_watts": 300,
+    "interface": "PCIe 4.0",
+    "cuda_cores": 18176,
+    "tensor_cores": 568,
+    "fp16_tflops": 364,
+    "fp8_tflops": 728,
+    "memory_bandwidth_gbps": 960,
+    "nvlink": false,
+    "release_year": 2022,
+    "target_tasks": [
+      "3D Rendering",
+      "ComfyUI / Stable Diffusion",
+      "AI Inference",
+      "Computer Vision"
+    ],
+    "description": "The RTX 6000 Ada is the Ada-generation successor to the RTX A6000: same 48GB workstation-class VRAM, updated architecture and FP8 support, but no NVLink — Ada dropped multi-GPU bridging from the workstation line.",
+    "highlights": [
+      "Newer Ada architecture with FP8 support the Ampere-based RTX A6000 lacks",
+      "48GB VRAM at strong single-GPU rendering/inference throughput",
+      "Certified drivers for professional DCC/CAD pipelines"
+    ]
+  },
+  {
+    "id": "nvidia-l40s",
+    "name": "NVIDIA L40S",
+    "vendor": "NVIDIA",
+    "vram_gb": 48,
+    "vram_type": "GDDR6",
+    "architecture": "Ada Lovelace",
+    "tdp_watts": 350,
+    "interface": "PCIe 4.0",
+    "cuda_cores": 18176,
+    "tensor_cores": 568,
+    "fp16_tflops": 362,
+    "fp8_tflops": 733,
+    "memory_bandwidth_gbps": 864,
+    "nvlink": false,
+    "release_year": 2023,
+    "target_tasks": [
+      "AI Inference",
+      "LLM Inference",
+      "3D Rendering",
+      "ComfyUI / Stable Diffusion"
+    ],
+    "description": "The L40S is NVIDIA's Ada-generation data-center card built for inference and mixed graphics/AI workloads, offering strong FP8 throughput and 48GB VRAM at a lower price point than H100.",
+    "highlights": [
+      "Purpose-built for inference and generative AI serving at scale",
+      "48GB VRAM comfortably serves 13B-34B quantized LLMs",
+      "Strong choice when H100 supply is constrained or overkill"
+    ]
+  },
+  {
+    "id": "nvidia-a40",
+    "name": "NVIDIA A40",
+    "vendor": "NVIDIA",
+    "vram_gb": 48,
+    "vram_type": "GDDR6",
+    "architecture": "Ampere",
+    "tdp_watts": 300,
+    "interface": "PCIe 4.0",
+    "cuda_cores": 10752,
+    "tensor_cores": 336,
+    "fp16_tflops": 150,
+    "memory_bandwidth_gbps": 696,
+    "nvlink": true,
+    "release_year": 2020,
+    "target_tasks": [
+      "3D Rendering",
+      "AI Inference",
+      "ComfyUI / Stable Diffusion",
+      "Computer Vision"
+    ],
+    "description": "The A40 is Ampere's 48GB data-center rendering/inference card — an older, cheaper alternative to the RTX 6000 Ada with the same VRAM headroom, still common on marketplace clouds.",
+    "highlights": [
+      "48GB VRAM at a noticeably lower $/hr than newer Ada-generation cards",
+      "NVLink bridge support for 2-GPU scaling, unlike its Ada successor",
+      "Widely available secondhand/marketplace supply keeps pricing low"
+    ]
+  },
+  {
+    "id": "nvidia-rtx-5090",
+    "name": "NVIDIA RTX 5090",
+    "vendor": "NVIDIA",
+    "vram_gb": 32,
+    "vram_type": "GDDR7",
+    "architecture": "Blackwell",
+    "tdp_watts": 575,
+    "interface": "PCIe 5.0",
+    "cuda_cores": 21760,
+    "tensor_cores": 680,
+    "fp16_tflops": 419,
+    "fp8_tflops": 838,
+    "memory_bandwidth_gbps": 1792,
+    "nvlink": false,
+    "release_year": 2025,
+    "target_tasks": [
+      "ComfyUI / Stable Diffusion",
+      "3D Rendering",
+      "AI Inference",
+      "Video Editing"
+    ],
+    "description": "The RTX 5090 is NVIDIA's newest consumer flagship — 32GB of GDDR7 and a big shader/bandwidth jump over the RTX 4090, currently the fastest consumer card available to rent for image generation and rendering.",
+    "highlights": [
+      "Fastest consumer-class card we track for SDXL/ComfyUI throughput",
+      "32GB VRAM — 8GB more than RTX 4090, room for bigger batches or SDXL + ControlNet stacks",
+      "Still early in cloud rollout, so supply/pricing is less stable than RTX 4090"
+    ]
+  },
+  {
+    "id": "nvidia-rtx-4090",
+    "name": "NVIDIA RTX 4090",
+    "vendor": "NVIDIA",
+    "vram_gb": 24,
+    "vram_type": "GDDR6X",
+    "architecture": "Ada Lovelace",
+    "tdp_watts": 450,
+    "interface": "PCIe 4.0",
+    "cuda_cores": 16384,
+    "tensor_cores": 512,
+    "fp16_tflops": 330,
+    "memory_bandwidth_gbps": 1008,
+    "nvlink": false,
+    "release_year": 2022,
+    "target_tasks": [
+      "ComfyUI / Stable Diffusion",
+      "3D Rendering",
+      "AI Inference",
+      "Video Editing"
+    ],
+    "description": "The RTX 4090 is a consumer-class card that dominates the price-per-token metric for image generation (ComfyUI, Automatic1111, SDXL) and small-model inference thanks to huge shader throughput at a fraction of data-center pricing.",
+    "highlights": [
+      "Cheapest $/hr for Stable Diffusion / ComfyUI workloads",
+      "24GB VRAM covers SDXL, most 7B-13B quantized inference",
+      "Widely available on spot/marketplace clouds at sub-$0.50/hr"
+    ]
+  },
+  {
+    "id": "nvidia-rtx-a6000",
+    "name": "NVIDIA RTX A6000",
+    "vendor": "NVIDIA",
+    "vram_gb": 48,
+    "vram_type": "GDDR6",
+    "architecture": "Ampere",
+    "tdp_watts": 300,
+    "interface": "PCIe 4.0",
+    "cuda_cores": 10752,
+    "tensor_cores": 336,
+    "fp16_tflops": 155,
+    "memory_bandwidth_gbps": 768,
+    "nvlink": true,
+    "release_year": 2021,
+    "target_tasks": [
+      "3D Rendering",
+      "AI Inference",
+      "ComfyUI / Stable Diffusion",
+      "Computer Vision"
+    ],
+    "description": "The RTX A6000 pairs 48GB of VRAM with workstation-grade drivers, making it a favorite for render farms, CAD/DCC pipelines and mid-size inference workloads that need more headroom than a 4090 without H100 pricing.",
+    "highlights": [
+      "48GB VRAM handles larger batches than RTX 4090 for the same task class",
+      "ECC memory and certified drivers for professional rendering pipelines",
+      "Good middle ground between consumer cards and data-center pricing"
+    ]
+  },
+  {
+    "id": "nvidia-rtx-3090",
+    "name": "NVIDIA RTX 3090",
+    "vendor": "NVIDIA",
+    "vram_gb": 24,
+    "vram_type": "GDDR6X",
+    "architecture": "Ampere",
+    "tdp_watts": 350,
+    "interface": "PCIe 4.0",
+    "cuda_cores": 10496,
+    "tensor_cores": 328,
+    "fp16_tflops": 142,
+    "memory_bandwidth_gbps": 936,
+    "nvlink": true,
+    "release_year": 2020,
+    "target_tasks": [
+      "ComfyUI / Stable Diffusion",
+      "AI Inference",
+      "3D Rendering",
+      "Video Editing"
+    ],
+    "description": "The RTX 3090 is the previous-generation consumer flagship — 24GB of VRAM at the lowest $/hr of any 24GB card on this site, thanks to huge secondhand/marketplace supply on peer-to-peer clouds.",
+    "highlights": [
+      "Lowest cost-per-GB-VRAM of any card we track — hard to beat for budget SDXL/inference",
+      "Same 24GB as RTX 4090 at a fraction of the hourly rate, with lower raw throughput",
+      "Massive marketplace availability keeps it in stock even during demand spikes"
+    ]
+  },
+  {
+    "id": "nvidia-v100",
+    "name": "NVIDIA V100",
+    "vendor": "NVIDIA",
+    "vram_gb": 32,
+    "vram_type": "HBM2",
+    "architecture": "Volta",
+    "tdp_watts": 300,
+    "interface": "SXM2",
+    "cuda_cores": 5120,
+    "tensor_cores": 640,
+    "fp16_tflops": 125,
+    "memory_bandwidth_gbps": 900,
+    "nvlink": true,
+    "release_year": 2017,
+    "target_tasks": [
+      "LLM Fine-tuning",
+      "AI Inference",
+      "Scientific Computing",
+      "Computer Vision"
+    ],
+    "description": "The V100 is an older data-center card (Volta, 2017) that's still commonly rented for legacy pipelines, teaching/research workloads and budget fine-tuning jobs that don't need Ampere/Hopper-class throughput.",
+    "highlights": [
+      "Cheapest HBM data-center card we track — real memory bandwidth at a fraction of A100 pricing",
+      "Still fully supported by CUDA/cuDNN and every major ML framework",
+      "Good fit for teaching, small-batch fine-tuning, or reproducing older research"
+    ]
+  },
+  {
+    "id": "nvidia-a10",
+    "name": "NVIDIA A10",
+    "vendor": "NVIDIA",
+    "vram_gb": 24,
+    "vram_type": "GDDR6",
+    "architecture": "Ampere",
+    "tdp_watts": 150,
+    "interface": "PCIe 4.0",
+    "cuda_cores": 9216,
+    "tensor_cores": 288,
+    "fp16_tflops": 125,
+    "memory_bandwidth_gbps": 600,
+    "nvlink": false,
+    "release_year": 2021,
+    "target_tasks": [
+      "AI Inference",
+      "Computer Vision",
+      "ComfyUI / Stable Diffusion",
+      "Video Editing"
+    ],
+    "description": "The A10 is a low-power (150W) inference-focused card — 24GB of VRAM at roughly a third the power draw of an RTX 4090, popular for always-on inference endpoints where electricity cost matters as much as throughput.",
+    "highlights": [
+      "150W TDP — the lowest power draw of any 24GB card here, cheapest to run 24/7",
+      "24GB VRAM comfortably serves most 7B-13B model inference",
+      "Data-center-grade reliability without data-center-grade pricing"
+    ]
+  },
+  {
+    "id": "nvidia-l4",
+    "name": "NVIDIA L4",
+    "vendor": "NVIDIA",
+    "vram_gb": 24,
+    "vram_type": "GDDR6",
+    "architecture": "Ada Lovelace",
+    "tdp_watts": 72,
+    "interface": "PCIe 4.0",
+    "cuda_cores": 7424,
+    "tensor_cores": 232,
+    "fp16_tflops": 121,
+    "fp8_tflops": 242,
+    "memory_bandwidth_gbps": 300,
+    "nvlink": false,
+    "release_year": 2023,
+    "target_tasks": [
+      "AI Inference",
+      "LLM Inference",
+      "Video Editing",
+      "ComfyUI / Stable Diffusion"
+    ],
+    "description": "The L4 is a single-slot, 72W inference card built for dense, low-power deployment — the cheapest way to run always-on inference or video processing at scale when you don't need training throughput.",
+    "highlights": [
+      "Lowest power draw of any card we track (72W) — very cheap to run continuously",
+      "FP8 support despite the low power envelope, unusual for this class of card",
+      "Single-slot form factor packs densely into inference-serving racks"
+    ]
+  },
+  {
+    "id": "nvidia-t4",
+    "name": "NVIDIA T4",
+    "vendor": "NVIDIA",
+    "vram_gb": 16,
+    "vram_type": "GDDR6",
+    "architecture": "Turing",
+    "tdp_watts": 70,
+    "interface": "PCIe 3.0",
+    "cuda_cores": 2560,
+    "tensor_cores": 320,
+    "fp16_tflops": 65,
+    "memory_bandwidth_gbps": 320,
+    "nvlink": false,
+    "release_year": 2018,
+    "target_tasks": [
+      "AI Inference",
+      "Computer Vision",
+      "Video Editing"
+    ],
+    "description": "The T4 is the long-running budget inference workhorse of every major cloud — 16GB VRAM, 70W, and the lowest $/hr of any card on this site. Fine for small/quantized models, video transcoding and classic CV pipelines.",
+    "highlights": [
+      "Cheapest card we track — the default choice for cost-sensitive inference at scale",
+      "70W TDP and passive-cooling-friendly form factor common in dense inference racks",
+      "16GB VRAM is enough for most quantized 7B models or classic CV/video workloads"
+    ]
+  }
+]

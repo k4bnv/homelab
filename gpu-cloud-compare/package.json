@@ -1,0 +1,38 @@
+{
+  "name": "gpu-cloud-compare",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Programmatic SEO price comparison site for GPU cloud rental providers (RunPod, Vast.ai, TensorDock, Lambda Labs, CoreWeave).",
+  "type": "module",
+  "scripts": {
+    "dev": "astro dev",
+    "start": "astro dev",
+    "sync-prices": "tsx scripts/fetch-prices.ts",
+    "build": "npm run sync-prices && astro check && astro build",
+    "preview": "astro preview",
+    "astro": "astro",
+    "typecheck": "astro check"
+  },
+  "dependencies": {
+    "@astrojs/react": "^3.6.2",
+    "@astrojs/sitemap": "3.2.1",
+    "@astrojs/tailwind": "^5.1.2",
+    "astro": "^4.16.7",
+    "class-variance-authority": "^0.7.0",
+    "clsx": "^2.1.1",
+    "lucide-react": "^0.446.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "tailwind-merge": "^2.5.2",
+    "tailwindcss": "^3.4.13"
+  },
+  "devDependencies": {
+    "@astrojs/check": "^0.9.4",
+    "@types/node": "^20.16.5",
+    "@types/react": "^18.3.5",
+    "@types/react-dom": "^18.3.0",
+    "autoprefixer": "^10.4.20",
+    "tsx": "^4.19.1",
+    "typescript": "^5.6.2"
+  }
+}

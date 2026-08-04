@@ -1,0 +1,161 @@
+---
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import Breadcrumbs from "@/components/Breadcrumbs.astro";
+import Faq from "@/components/Faq.astro";
+import CostCalculator from "@/components/CostCalculator.astro";
+import CtaButton from "@/components/ui/CtaButton.astro";
+import ProviderComparisonTable from "@/components/ProviderComparisonTable";
+import GpuSeoSchema from "@/components/GpuSeoSchema";
+import { getAllGpus, getGpuById, getComputedOffersForGpu, formatUsd, formatRelativeTime } from "@/lib/data";
+import { areGpusComparable, canonicalPairSlug } from "@/utils/pseo";
+import { buildMeta } from "@/lib/seo";
+import { buildGpuFaq } from "@/lib/faq";
+
+export function getStaticPaths() {
+  return getAllGpus().map((gpu) => ({
+    params: { slug: gpu.id },
+  }));
+}
+
+const { slug } = Astro.params;
+const gpu = getGpuById(slug as string);
+
+if (!gpu) {
+  return Astro.redirect("/404");
+}
+
+// Already sorted ascending by price_on_demand — see getComputedOffersForGpu.
+const offers = getComputedOffersForGpu(gpu.id);
+const cheapest = offers[0];
+const faqs = buildGpuFaq(gpu, offers);
+
+const breadcrumbs = [
+  { name: "Home", path: "/" },
+  { name: "GPUs", path: "/#gpu-table" },
+  { name: gpu.name, path: `/gpu/${gpu.id}/` },
+];
+
+// Up to 3 alternative cards for the "Compare with alternatives" block —
+// only GPUs that actually have a generated /compare/ page with this one.
+const alternatives = getAllGpus()
+  .filter((g) => areGpusComparable(gpu, g))
+  .slice(0, 3);
+
+const meta = buildMeta({
+  title: `Rent ${gpu.name} Cloud GPU - Compare Prices from ${
+    cheapest ? formatUsd(cheapest.price_on_demand) : "N/A"
+  }/hr`,
+  description: `Find the cheapest ${gpu.name} (${gpu.vram_gb}GB) cloud instances. Compare hourly rates, spot pricing, and storage fees across RunPod, Vast.ai, and top providers.`,
+  canonicalPath: `/gpu/${gpu.id}/`,
+  type: "article",
+});
+---
+
+<BaseLayout meta={meta}>
+  <GpuSeoSchema gpu={gpu} offers={offers} faqs={faqs} breadcrumbs={breadcrumbs} />
+
+  <div class="mx-auto max-w-6xl px-4 py-10 sm:px-6 lg:px-8">
+    <Breadcrumbs crumbs={breadcrumbs} emitSchema={false} />
+
+    {/* --- Header & spec summary --- */}
+    <h1 class="text-3xl font-extrabold tracking-tight text-white sm:text-4xl">
+      {gpu.name} {gpu.vram_gb}GB
+    </h1>
+    <p class="mt-3 max-w-2xl text-slate-400">{gpu.description}</p>
+
+    <div class="mt-4 flex flex-wrap gap-2">
+      <span class="rounded-full border border-surface-600 bg-surface-800 px-3 py-1 font-mono text-xs text-slate-300">
+        {gpu.vram_gb}GB {gpu.vram_type}
+      </span>
+      <span class="rounded-full border border-surface-600 bg-surface-800 px-3 py-1 font-mono text-xs text-slate-300">
+        {gpu.architecture}
+      </span>
+      <span class="rounded-full border border-surface-600 bg-surface-800 px-3 py-1 font-mono text-xs text-slate-300">
+        {gpu.tdp_watts}W TDP
+      </span>
+      <span class="rounded-full border border-surface-600 bg-surface-800 px-3 py-1 font-mono text-xs text-slate-300">
+        {gpu.interface}
+      </span>
+    </div>
+
+    <div class="mt-2 flex flex-wrap gap-2">
+      {gpu.target_tasks.map((task) => (
+        <span class="rounded-full border border-neon-blue/30 bg-neon-blue/10 px-3 py-1 text-xs text-neon-blue">
+          {task}
+        </span>
+      ))}
+    </div>
+
+    {/* --- Lowest price banner --- */}
+    {cheapest && (
+      <div class="mt-6 flex flex-wrap items-center justify-between gap-4 rounded-xl border border-neon-green/40 bg-gradient-to-r from-neon-green/10 to-neon-blue/5 p-5 shadow-neon-green">
+        <div>
+          <p class="text-xs uppercase tracking-wide text-neon-green">Lowest Price Currently</p>
+          <p class="mt-1 font-mono text-3xl font-extrabold text-white">
+            {formatUsd(cheapest.price_on_demand)}<span class="text-base font-normal text-slate-400">/hr</span>
+          </p>
+          <p class="mt-1 text-xs text-slate-400">
+            via {cheapest.name} · {offers.length} provider{offers.length === 1 ? "" : "s"} compared
+            {gpu.market && (
+              <>
+                {" "}· <span class="text-neon-green">●</span> synced {formatRelativeTime(gpu.market.last_updated)}
+              </>
+            )}
+          </p>
+        </div>
+        <CtaButton href={cheapest.affiliate_url}>
+          Rent for {formatUsd(cheapest.price_on_demand)}/hr
+        </CtaButton>
+      </div>
+    )}
+
+    {/* --- Provider comparison table --- */}
+    <section class="mt-12">
+      <h2 class="mb-4 text-2xl font-bold text-white">
+        {gpu.name} Price Comparison — {offers.length} Providers
+      </h2>
+      <ProviderComparisonTable gpu={gpu} offers={offers} />
+    </section>
+
+    {/* --- Cost calculator --- */}
+    {cheapest && <CostCalculator gpu={gpu} offer={cheapest} />}
+
+    {/* --- SEO content section --- */}
+    <section class="mt-12">
+      <h2 class="mb-4 text-2xl font-bold text-white">Why Rent {gpu.name} for AI Workloads?</h2>
+      <ul class="grid gap-3 sm:grid-cols-3">
+        {gpu.highlights.map((highlight) => (
+          <li class="card flex items-start gap-2 p-4 text-sm text-slate-300">
+            <span class="mt-0.5 text-neon-green">▸</span>
+            {highlight}
+          </li>
+        ))}
+      </ul>
+    </section>
+
+    <Faq faqs={faqs} title={`${gpu.name} FAQ`} emitSchema={false} />
+
+    {/* --- Hub & spoke interlinking --- */}
+    <section class="mt-12 border-t border-surface-800 pt-8">
+      <a href="/#gpu-table" class="text-sm text-slate-400 hover:text-neon-green">
+        ← Back to full GPU catalog
+      </a>
+
+      {alternatives.length > 0 && (
+        <div class="mt-6">
+          <h2 class="mb-3 text-lg font-bold text-white">Compare with alternatives</h2>
+          <div class="flex flex-wrap gap-2">
+            {alternatives.map((alt) => (
+              <a
+                href={`/compare/${canonicalPairSlug(gpu.id, alt.id)}/`}
+                class="rounded-lg border border-surface-600 bg-surface-800 px-3 py-2 text-sm text-slate-300 transition hover:border-neon-blue/50 hover:text-neon-blue"
+              >
+                {gpu.name} vs {alt.name}
+              </a>
+            ))}
+          </div>
+        </div>
+      )}
+    </section>
+  </div>
+</BaseLayout>

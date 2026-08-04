@@ -1,0 +1,13 @@
+node_modules/
+dist/
+.astro/
+.env
+.env.production
+npm-debug.log*
+.DS_Store
+
+# The repo-root .gitignore excludes any "**/data/" dir (docker volume data
+# for the other services in this repo). This project's src/data/*.json is
+# source content (pSEO fixtures), not runtime data — un-ignore it.
+!src/data/
+!src/data/**

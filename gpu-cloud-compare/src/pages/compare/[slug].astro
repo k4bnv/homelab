@@ -1,0 +1,297 @@
+---
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import Breadcrumbs from "@/components/Breadcrumbs.astro";
+import Faq from "@/components/Faq.astro";
+import CtaButton from "@/components/ui/CtaButton.astro";
+import SideBySideTable, { type ComparisonRow } from "@/components/SideBySideTable";
+import {
+  getAllComparisonSlugs,
+  resolveComparison,
+  getRelatedGpuComparisons,
+  getRelatedProviderComparisons,
+  type RelatedComparison,
+} from "@/utils/pseo";
+import {
+  buildGpuComparisonRows,
+  buildGpuVerdict,
+  buildGpuProsCons,
+  buildGpuComparisonFaq,
+  buildProviderComparisonRows,
+  buildProviderVerdict,
+  buildProviderProsCons,
+  buildProviderComparisonFaq,
+  type ProsCons,
+  type VerdictResult,
+} from "@/lib/compareContent";
+import {
+  getComputedOffersForGpu,
+  getComputedOffersForProvider,
+  getAveragePricePerVramHr,
+  getMinPriceForProvider,
+  formatUsd,
+} from "@/lib/data";
+import { buildMeta } from "@/lib/seo";
+import type { FaqItem } from "@/types";
+
+export function getStaticPaths() {
+  return getAllComparisonSlugs().map((slug) => ({ params: { slug } }));
+}
+
+const { slug } = Astro.params;
+const comparison = resolveComparison(slug as string);
+
+if (!comparison) {
+  return Astro.redirect("/404");
+}
+
+const cmp = comparison;
+
+interface CtaTarget {
+  name: string;
+  price: number;
+  url: string;
+}
+
+// Flattened, branch-once at the top so the template below never has to
+// re-discriminate `cmp.type` — every value it needs is a plain variable.
+let nameA: string;
+let nameB: string;
+let rows: ComparisonRow[];
+let verdict: VerdictResult;
+let prosConsA: ProsCons;
+let prosConsB: ProsCons;
+let faqs: FaqItem[];
+let ctaA: CtaTarget | null;
+let ctaB: CtaTarget | null;
+let related: RelatedComparison[];
+let detailLinkA: string | null = null;
+let detailLinkB: string | null = null;
+let priceEfficiencyA: number;
+let priceEfficiencyB: number;
+let useCasesA: string[];
+let useCasesB: string[];
+
+if (cmp.type === "gpu-vs-gpu") {
+  const { a, b } = cmp;
+  nameA = a.name;
+  nameB = b.name;
+  rows = buildGpuComparisonRows(a, b);
+  verdict = buildGpuVerdict(a, b);
+  prosConsA = buildGpuProsCons(a, b);
+  prosConsB = buildGpuProsCons(b, a);
+  faqs = buildGpuComparisonFaq(a, b, verdict);
+
+  const offersA = getComputedOffersForGpu(a.id);
+  const offersB = getComputedOffersForGpu(b.id);
+  ctaA = offersA[0] ? { name: a.name, price: offersA[0].price_on_demand, url: offersA[0].affiliate_url } : null;
+  ctaB = offersB[0] ? { name: b.name, price: offersB[0].price_on_demand, url: offersB[0].affiliate_url } : null;
+
+  related = getRelatedGpuComparisons(slug as string, a.id, b.id, 6);
+  detailLinkA = `/gpu/${a.id}/`;
+  detailLinkB = `/gpu/${b.id}/`;
+  priceEfficiencyA = getAveragePricePerVramHr(a);
+  priceEfficiencyB = getAveragePricePerVramHr(b);
+  useCasesA = a.target_tasks;
+  useCasesB = b.target_tasks;
+} else {
+  const { a, b } = cmp;
+  nameA = a.name;
+  nameB = b.name;
+  rows = buildProviderComparisonRows(a, b);
+  verdict = buildProviderVerdict(a, b);
+  prosConsA = buildProviderProsCons(a, b);
+  prosConsB = buildProviderProsCons(b, a);
+  faqs = buildProviderComparisonFaq(a, b, verdict);
+
+  ctaA = { name: a.name, price: getMinPriceForProvider(a.slug), url: a.affiliate_url };
+  ctaB = { name: b.name, price: getMinPriceForProvider(b.slug), url: b.affiliate_url };
+
+  related = getRelatedProviderComparisons(slug as string, a.slug, b.slug, 6);
+  priceEfficiencyA = getComputedOffersForProvider(a.slug)[0]?.price_per_vram_hr ?? 0;
+  priceEfficiencyB = getComputedOffersForProvider(b.slug)[0]?.price_per_vram_hr ?? 0;
+  useCasesA = [
+    a.cloud_type === "Community"
+      ? "Budget-conscious, fault-tolerant batch jobs"
+      : "Production workloads needing guaranteed uptime",
+    `Billed via ${a.payment_model.toLowerCase()}`,
+    a.has_api_cli ? "Automation via API/CLI" : "UI-first workflow",
+  ];
+  useCasesB = [
+    b.cloud_type === "Community"
+      ? "Budget-conscious, fault-tolerant batch jobs"
+      : "Production workloads needing guaranteed uptime",
+    `Billed via ${b.payment_model.toLowerCase()}`,
+    b.has_api_cli ? "Automation via API/CLI" : "UI-first workflow",
+  ];
+}
+
+const meta = buildMeta({
+  title: `${nameA} vs ${nameB}: Price, Specs & Performance Comparison (2026)`,
+  description: `Detailed comparison of ${nameA} vs ${nameB}. Compare hourly pricing, specs, spot rates, and best use cases before renting cloud GPUs${
+    cmp.type === "provider-vs-provider" ? " from either provider" : ""
+  }.`,
+  canonicalPath: `/compare/${slug}/`,
+  type: "article",
+});
+
+const breadcrumbs = [
+  { name: "Home", path: "/" },
+  { name: "Compare", path: "/compare/" },
+  { name: `${nameA} vs ${nameB}`, path: `/compare/${slug}/` },
+];
+---
+
+<BaseLayout meta={meta}>
+  <div class="mx-auto max-w-6xl px-4 py-10 sm:px-6 lg:px-8">
+    <Breadcrumbs crumbs={breadcrumbs} />
+
+    {/* --- Hero & AI Verdict --- */}
+    <h1 class="text-3xl font-extrabold tracking-tight text-white sm:text-4xl">
+      {nameA} <span class="text-slate-600">vs</span> {nameB}: Which is Better in 2026?
+    </h1>
+
+    <div class="mt-6 rounded-xl border border-neon-blue/40 bg-gradient-to-r from-neon-blue/10 to-neon-green/5 p-5">
+      <p class="text-xs font-semibold uppercase tracking-wide text-neon-blue">AI Verdict</p>
+      <p class="mt-2 leading-relaxed text-slate-200">{verdict.text}</p>
+    </div>
+
+    {/* --- Side-by-side comparison table --- */}
+    <section class="mt-10">
+      <h2 class="mb-4 text-2xl font-bold text-white">
+        {nameA} vs {nameB} — Side by Side
+      </h2>
+      <SideBySideTable nameA={nameA} nameB={nameB} rows={rows} />
+    </section>
+
+    {/* --- Price & cost efficiency --- */}
+    <section class="mt-10">
+      <h2 class="mb-4 text-2xl font-bold text-white">Price &amp; Cost Efficiency</h2>
+      <p class="mb-4 text-sm text-slate-400">
+        Comparing raw $/hr is misleading when {cmp.type === "gpu-vs-gpu" ? "VRAM capacity differs" : "the two rent different hardware"} —
+        here's the cost per GB of VRAM per hour, the normalized metric used across this site.
+      </p>
+      <div class="grid gap-4 sm:grid-cols-2">
+        <div class="card p-5">
+          <p class="text-xs uppercase tracking-wide text-slate-500">{nameA}</p>
+          <p class="mt-1 font-mono text-2xl font-extrabold text-neon-green">
+            {formatUsd(priceEfficiencyA, 3)}<span class="text-sm font-normal text-slate-500">/GB VRAM/hr</span>
+          </p>
+        </div>
+        <div class="card p-5">
+          <p class="text-xs uppercase tracking-wide text-slate-500">{nameB}</p>
+          <p class="mt-1 font-mono text-2xl font-extrabold text-neon-green">
+            {formatUsd(priceEfficiencyB, 3)}<span class="text-sm font-normal text-slate-500">/GB VRAM/hr</span>
+          </p>
+        </div>
+      </div>
+    </section>
+
+    {/* --- Pros & cons --- */}
+    <section class="mt-10">
+      <h2 class="mb-4 text-2xl font-bold text-white">Pros &amp; Cons</h2>
+      <div class="grid gap-6 sm:grid-cols-2">
+        {[
+          { name: nameA, prosCons: prosConsA },
+          { name: nameB, prosCons: prosConsB },
+        ].map(({ name, prosCons }) => (
+          <div class="card p-5">
+            <h3 class="mb-3 font-bold text-white">{name}</h3>
+            <p class="mb-1.5 text-xs font-semibold uppercase tracking-wide text-neon-green">Pros</p>
+            <ul class="mb-4 space-y-1.5 text-sm text-slate-300">
+              {prosCons.pros.map((pro) => (
+                <li class="flex items-start gap-2">
+                  <span class="mt-0.5 text-neon-green">+</span>
+                  {pro}
+                </li>
+              ))}
+            </ul>
+            <p class="mb-1.5 text-xs font-semibold uppercase tracking-wide text-slate-500">Cons</p>
+            <ul class="space-y-1.5 text-sm text-slate-400">
+              {prosCons.cons.map((con) => (
+                <li class="flex items-start gap-2">
+                  <span class="mt-0.5 text-slate-600">−</span>
+                  {con}
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))}
+      </div>
+    </section>
+
+    {/* --- Key use cases --- */}
+    <section class="mt-10">
+      <h2 class="mb-4 text-2xl font-bold text-white">Key Use Cases</h2>
+      <div class="grid gap-6 sm:grid-cols-2">
+        {[
+          { name: nameA, tasks: useCasesA },
+          { name: nameB, tasks: useCasesB },
+        ].map(({ name, tasks }) => (
+          <div class="card p-5">
+            <h3 class="mb-3 font-bold text-white">Choose {name} if:</h3>
+            <ul class="space-y-1.5 text-sm text-slate-300">
+              {tasks.map((task) => (
+                <li class="flex items-start gap-2">
+                  <span class="mt-0.5 text-neon-blue">▸</span>
+                  {task}
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))}
+      </div>
+    </section>
+
+    {/* --- CTA action box --- */}
+    <section class="mt-10">
+      <h2 class="mb-4 text-2xl font-bold text-white">Ready to Rent?</h2>
+      <div class="grid gap-4 sm:grid-cols-2">
+        {[ctaA, ctaB].map((cta) => (
+          <div class="card flex flex-col items-start gap-3 border-neon-green/30 p-5">
+            {cta ? (
+              <>
+                <p class="font-bold text-white">{cta.name}</p>
+                <p class="font-mono text-2xl font-extrabold text-neon-green">
+                  {formatUsd(cta.price)}<span class="text-sm font-normal text-slate-500">/hr</span>
+                </p>
+                <CtaButton href={cta.url} class="w-full justify-center">
+                  Rent {cta.name}
+                </CtaButton>
+              </>
+            ) : (
+              <p class="text-sm text-slate-500">No live offers to show right now.</p>
+            )}
+          </div>
+        ))}
+      </div>
+    </section>
+
+    <Faq faqs={faqs} title={`${nameA} vs ${nameB} FAQ`} />
+
+    {/* --- Hub & spoke interlinking --- */}
+    <section class="mt-12 border-t border-surface-800 pt-8">
+      {detailLinkA && detailLinkB && (
+        <div class="mb-8 flex flex-wrap gap-4 text-sm">
+          <a href={detailLinkA} class="text-slate-400 hover:text-neon-green">→ Full {nameA} specs &amp; pricing</a>
+          <a href={detailLinkB} class="text-slate-400 hover:text-neon-green">→ Full {nameB} specs &amp; pricing</a>
+        </div>
+      )}
+
+      {related.length > 0 && (
+        <>
+          <h2 class="mb-4 text-xl font-bold text-white">Other Popular Comparisons</h2>
+          <div class="grid gap-2 sm:grid-cols-2">
+            {related.map((r) => (
+              <a
+                href={`/compare/${r.slug}/`}
+                class="rounded-lg border border-surface-600 bg-surface-800 px-4 py-2 text-sm text-slate-300 transition hover:border-neon-blue/50 hover:text-neon-blue"
+              >
+                {r.label}
+              </a>
+            ))}
+          </div>
+        </>
+      )}
+    </section>
+  </div>
+</BaseLayout>

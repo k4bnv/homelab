@@ -1,0 +1,33 @@
+services:
+  gpu-cloud-compare:
+    container_name: gpu-cloud-compare
+    build: .
+    restart: unless-stopped
+    ports:
+      - "8090:80"
+    environment:
+      # Hours between in-container price syncs (fetch + rebuild). No
+      # GitHub Action, no external CI — see docker/entrypoint.sh.
+      - SYNC_INTERVAL_HOURS=6
+      # Optional. The RunPod fetcher just skips itself (not an error)
+      # when this is unset — see scripts/fetch-prices.ts.
+      - RUNPOD_API_KEY=${RUNPOD_API_KEY:-}
+      # Optional — production domain for sitemap/canonical/OG tags. Falls
+      # back to https://gpucompare.cloud (src/lib/seo.ts) if unset.
+      - SITE_URL=${SITE_URL:-}
+      # Optional real affiliate/referral links — override the
+      # "?ref=AFFILIATE_ID" placeholder baked into src/data/providers.json
+      # per-provider, without editing/committing that file. See .env.example
+      # at the repo root; copy it to .env and Compose picks these up
+      # automatically. Any left unset here keep the placeholder URL.
+      - AFFILIATE_URL_RUNPOD=${AFFILIATE_URL_RUNPOD:-}
+      - AFFILIATE_URL_VAST_AI=${AFFILIATE_URL_VAST_AI:-}
+      - AFFILIATE_URL_TENSORDOCK=${AFFILIATE_URL_TENSORDOCK:-}
+      - AFFILIATE_URL_LAMBDA_LABS=${AFFILIATE_URL_LAMBDA_LABS:-}
+      - AFFILIATE_URL_COREWEAVE=${AFFILIATE_URL_COREWEAVE:-}
+    networks:
+      - frontend
+
+networks:
+  frontend:
+    external: true

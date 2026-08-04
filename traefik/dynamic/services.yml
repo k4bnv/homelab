@@ -49,6 +49,15 @@ http:
       tls:
         certResolver: cloudflare
 
+  # gpucompare.cloud is intentionally NOT routed through Traefik — it's
+  # served via the existing Cloudflare Tunnel elsewhere in Proxmox (not
+  # part of this repo). That tunnel's Public Hostname config points
+  # gpucompare.cloud at the gpu-cloud-compare container's published port
+  # (LXC 100, http://192.168.178.194:8090 — see gpu-cloud-compare/
+  # docker-compose.yaml's `ports:`). Cloudflare terminates TLS at its
+  # edge, so this domain never touches Traefik's entryPoints or the
+  # `cloudflare` certResolver at all.
+
   services:
     homepage:
       loadBalancer:

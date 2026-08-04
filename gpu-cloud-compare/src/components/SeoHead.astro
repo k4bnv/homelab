@@ -1,0 +1,32 @@
+---
+import { canonicalUrl, SITE_NAME } from "@/lib/seo";
+import type { SeoMeta } from "@/types";
+
+interface Props {
+  meta: SeoMeta;
+}
+
+const { meta } = Astro.props;
+const canonical = canonicalUrl(meta.canonicalPath);
+const ogImage = meta.ogImage?.startsWith("http")
+  ? meta.ogImage
+  : canonicalUrl(meta.ogImage ?? "/og-default.svg");
+---
+
+<title>{meta.title}</title>
+<meta name="description" content={meta.description} />
+<link rel="canonical" href={canonical} />
+
+<meta property="og:site_name" content={SITE_NAME} />
+<meta property="og:title" content={meta.title} />
+<meta property="og:description" content={meta.description} />
+<meta property="og:url" content={canonical} />
+<meta property="og:type" content={meta.type ?? "website"} />
+<meta property="og:image" content={ogImage} />
+
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content={meta.title} />
+<meta name="twitter:description" content={meta.description} />
+<meta name="twitter:image" content={ogImage} />
+
+<meta name="theme-color" content="#05070a" />

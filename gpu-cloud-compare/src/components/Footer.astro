@@ -1,0 +1,61 @@
+---
+import { getAllGpus, getAllProviders } from "@/lib/data";
+import { canonicalPairSlug } from "@/utils/pseo";
+import { SITE_NAME } from "@/lib/seo";
+import useCasesData from "@/data/use-cases.json";
+
+const gpuList = getAllGpus();
+const providerList = getAllProviders();
+const useCases = useCasesData as { slug: string; short_title: string }[];
+const year = new Date().getFullYear();
+---
+
+<footer class="mt-24 border-t border-surface-700 bg-surface-900/40">
+  <div class="mx-auto grid max-w-7xl gap-8 px-4 py-12 sm:px-6 md:grid-cols-4 lg:px-8">
+    <div>
+      <p class="mb-3 text-sm font-semibold text-slate-300">GPUs</p>
+      <ul class="space-y-2 text-sm text-slate-500">
+        {gpuList.map((gpu) => (
+          <li><a href={`/gpu/${gpu.id}/`} class="hover:text-neon-green">{gpu.name}</a></li>
+        ))}
+      </ul>
+    </div>
+
+    <div>
+      <p class="mb-3 text-sm font-semibold text-slate-300">Providers</p>
+      <ul class="space-y-2 text-sm text-slate-500">
+        {providerList.map((provider) => {
+          const other = providerList.find((p) => p.slug !== provider.slug);
+          const href = other ? `/compare/${canonicalPairSlug(provider.slug, other.slug)}/` : "/";
+          return (
+            <li>
+              <a href={href} class="hover:text-neon-blue">{provider.name}</a>
+            </li>
+          );
+        })}
+      </ul>
+    </div>
+
+    <div>
+      <p class="mb-3 text-sm font-semibold text-slate-300">Best GPU for…</p>
+      <ul class="space-y-2 text-sm text-slate-500">
+        {useCases.map((uc) => (
+          <li><a href={`/best-gpu-for/${uc.slug}/`} class="hover:text-neon-green">{uc.short_title}</a></li>
+        ))}
+      </ul>
+    </div>
+
+    <div>
+      <p class="mb-3 text-sm font-semibold text-slate-300">{SITE_NAME}</p>
+      <p class="text-sm text-slate-500">
+        Independent price comparison for GPU cloud rental. We may earn a commission
+        when you sign up through a link on this site — it never affects the prices
+        shown or which provider ranks first.
+      </p>
+    </div>
+  </div>
+
+  <div class="border-t border-surface-800 px-4 py-6 text-center text-xs text-slate-600 sm:px-6 lg:px-8">
+    © {year} {SITE_NAME}. Prices are indicative and change frequently — always confirm on the provider's site.
+  </div>
+</footer>

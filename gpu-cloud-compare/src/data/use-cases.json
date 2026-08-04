@@ -1,0 +1,56 @@
+[
+  {
+    "slug": "llm-training",
+    "title": "Best GPU for LLM Training",
+    "short_title": "LLM Training",
+    "description": "Training a large language model from scratch or continuing pre-training needs the highest memory bandwidth and multi-GPU NVLink scaling you can rent.",
+    "min_vram_gb": 80,
+    "recommended_gpu_ids": ["nvidia-b200", "nvidia-h200", "nvidia-h100", "nvidia-a100"],
+    "tasks": ["LLM Training"]
+  },
+  {
+    "slug": "llm-fine-tuning",
+    "title": "Best GPU for LLM Fine-tuning",
+    "short_title": "LLM Fine-tuning",
+    "description": "Fine-tuning (LoRA, QLoRA, full fine-tune) on 7B-70B models is far cheaper than pre-training and runs well on a single 80GB card.",
+    "min_vram_gb": 24,
+    "recommended_gpu_ids": ["nvidia-a100", "nvidia-h100", "nvidia-h200", "nvidia-rtx-4090"],
+    "tasks": ["LLM Fine-tuning"]
+  },
+  {
+    "slug": "comfyui-stable-diffusion",
+    "title": "Best GPU for ComfyUI & Stable Diffusion",
+    "short_title": "ComfyUI / Stable Diffusion",
+    "description": "Image generation workloads (SDXL, ComfyUI workflows, ControlNet) are shader-bound and VRAM-bound, not bandwidth-bound — consumer cards win on price per image.",
+    "min_vram_gb": 12,
+    "recommended_gpu_ids": ["nvidia-rtx-5090", "nvidia-rtx-4090", "nvidia-rtx-3090", "nvidia-l40s"],
+    "tasks": ["ComfyUI / Stable Diffusion"]
+  },
+  {
+    "slug": "ai-inference",
+    "title": "Best GPU for AI Inference / LLM Serving",
+    "short_title": "AI Inference",
+    "description": "Serving a model in production is about $/token and concurrency, not raw training FLOPs — right-size the card to the model's quantized VRAM footprint.",
+    "min_vram_gb": 16,
+    "recommended_gpu_ids": ["nvidia-l40s", "nvidia-l4", "nvidia-a10", "nvidia-t4", "nvidia-a100"],
+    "tasks": ["AI Inference", "LLM Inference"]
+  },
+  {
+    "slug": "3d-rendering",
+    "title": "Best GPU for 3D Rendering",
+    "short_title": "3D Rendering",
+    "description": "Offline rendering (Blender Cycles, Octane, Redshift) benefits from high VRAM and CUDA core counts to fit large scenes and cut render-farm wall-clock time.",
+    "min_vram_gb": 24,
+    "recommended_gpu_ids": ["nvidia-rtx-6000-ada", "nvidia-rtx-a6000", "nvidia-a40", "nvidia-rtx-4090"],
+    "tasks": ["3D Rendering"]
+  },
+  {
+    "slug": "video-editing",
+    "title": "Best GPU for Video Editing & Encoding",
+    "short_title": "Video Editing",
+    "description": "4K/8K timeline scrubbing, color grading and NVENC-accelerated exports care more about decode/encode throughput and VRAM headroom than raw training FLOPs.",
+    "min_vram_gb": 16,
+    "recommended_gpu_ids": ["nvidia-rtx-4090", "nvidia-rtx-3090", "nvidia-l4", "nvidia-t4"],
+    "tasks": ["Video Editing"]
+  }
+]

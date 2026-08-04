@@ -1,0 +1,32 @@
+---
+const nav = [
+  { label: "Compare GPUs", href: "/" },
+  { label: "LLM Training", href: "/best-gpu-for/llm-training/" },
+  { label: "ComfyUI / SD", href: "/best-gpu-for/comfyui-stable-diffusion/" },
+  { label: "AI Inference", href: "/best-gpu-for/ai-inference/" },
+];
+---
+
+<header class="sticky top-0 z-50 border-b border-surface-700 bg-surface-950/80 backdrop-blur">
+  <div class="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6 lg:px-8">
+    <a href="/" class="flex items-center gap-2 text-lg font-bold tracking-tight">
+      <span class="inline-block h-2 w-2 rounded-full bg-neon-green shadow-neon-green"></span>
+      GPU<span class="text-gradient-neon">Compare</span><span class="text-slate-500">.cloud</span>
+    </a>
+
+    <nav class="hidden items-center gap-6 text-sm font-medium text-slate-400 md:flex">
+      {nav.map((item) => (
+        <a href={item.href} class="transition-colors hover:text-neon-green">
+          {item.label}
+        </a>
+      ))}
+    </nav>
+
+    <a
+      href="/#gpu-table"
+      class="rounded-lg border border-neon-green/40 bg-neon-green/10 px-3 py-1.5 text-sm font-semibold text-neon-green transition hover:bg-neon-green/20 md:inline-block"
+    >
+      Compare prices
+    </a>
+  </div>
+</header>
