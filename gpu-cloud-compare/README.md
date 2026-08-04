@@ -30,10 +30,11 @@ Types live in `src/types/index.ts`. `src/lib/data.ts` is the only place that
 reads the JSON files and joins them (`getAllComputedOffers`,
 `getComputedOffersForGpu`, …) — pages never touch the JSON directly.
 
-**Ratings, review counts and affiliate URLs are still placeholder test
-data** — replace every `?ref=AFFILIATE_ID` with real affiliate links before
-shipping to production. Pricing (`price_on_demand`, `price_spot`) is now
-kept live by `npm run sync-prices` — see below.
+**Ratings and review counts are still placeholder test data.** Pricing
+(`price_on_demand`, `price_spot`) is kept live by `npm run sync-prices` —
+see below. Affiliate URLs default to a `?ref=AFFILIATE_ID` placeholder but
+are meant to be overridden via environment variables, not hand-edited in
+the JSON — see **[Affiliate links](#affiliate-links)**.
 
 ## Routes
 
@@ -126,6 +127,42 @@ repo's Actions secrets:
 You don't need both — if you're self-hosting with Docker, you can disable
 or delete this workflow.
 
+## Affiliate links
+
+Every `affiliate_url` in `src/data/providers.json` ships as a
+`?ref=AFFILIATE_ID` placeholder — swap in your real referral links via
+environment variables instead of editing that committed file. Copy
+[`.env.example`](.env.example) to `.env` and fill in the ones you have:
+
+```bash
+cp .env.example .env
+# edit .env — one line per provider, e.g.:
+# AFFILIATE_URL_RUNPOD=https://runpod.io/?ref=YOUR_REAL_ID
+```
+
+The convention is `AFFILIATE_URL_<SLUG>` — the provider's `slug` field
+from `providers.json`, uppercased with hyphens as underscores (`vast-ai` →
+`AFFILIATE_URL_VAST_AI`). Any provider left unset keeps the placeholder
+URL; nothing breaks if you only have deals with some providers.
+
+This is read in `src/lib/data.ts`, applied once at build time to every
+generated page — there's no client-side lookup, so it works identically
+however you build:
+
+- **Docker (recommended for self-hosting):** put `.env` next to
+  `docker-compose.yaml` — Compose reads it automatically for the
+  `AFFILIATE_URL_*` entries already wired into the `environment:` block,
+  so it's picked up on every `docker compose up -d --build` and on every
+  in-container resync (see below).
+- **Local `npm run dev` / `npm run build`:** the same `.env` at the
+  project root works too — `src/lib/data.ts` includes a small
+  dependency-free loader for it (Astro/Vite's own dotenv handling only
+  exposes `PUBLIC_`-prefixed vars to build code, which these deliberately
+  aren't, so this project loads the file itself instead).
+- **CI (`.github/workflows/daily-sync.yml`):** set these as real repo
+  Actions secrets/variables and pass them through to the sync step the
+  same way `RUNPOD_API_KEY` is, if you're using that path instead.
+
 ## Self-hosting with Docker
 
 One container, no external CI: `docker/entrypoint.sh` re-runs
@@ -164,6 +201,7 @@ Environment variables (set in `docker-compose.yaml`):
 |---|---|---|
 | `SYNC_INTERVAL_HOURS` | `6` | Hours between in-container price syncs |
 | `RUNPOD_API_KEY` | unset | Optional — enables the RunPod fetcher (see above) |
+| `AFFILIATE_URL_*` | unset | Optional — your real referral links, see [Affiliate links](#affiliate-links) |
 
 Image layout: `node:20-alpine` + `nginx`, `docker build` bakes one initial
 `dist/` (this is the only point `astro check` runs — a broken build fails
