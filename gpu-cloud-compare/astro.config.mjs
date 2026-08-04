@@ -26,7 +26,7 @@ loadDotEnvIntoProcessEnv();
 // key off this. Override via SITE_URL env var (.env, shell export, or
 // docker-compose.yaml) without touching code — see src/lib/seo.ts, which
 // reads the same var for canonical/OG URLs.
-const SITE_URL = process.env.SITE_URL || "https://gpu.kolyachaba.top";
+const SITE_URL = process.env.SITE_URL || "https://gpucompare.cloud";
 
 export default defineConfig({
   site: SITE_URL,

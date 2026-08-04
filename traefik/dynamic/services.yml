@@ -50,7 +50,7 @@ http:
         certResolver: cloudflare
 
     gpu-compare:
-      rule: "Host(`gpu.kolyachaba.top`)"
+      rule: "Host(`gpucompare.cloud`)"
       entryPoints: [websecure]
       service: gpu-compare
       tls:

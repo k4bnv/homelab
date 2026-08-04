@@ -1,4 +1,4 @@
-# GPU Cloud Compare
+# GPUCompare.cloud
 
 Programmatic-SEO price comparison site for GPU cloud rental (RunPod, Vast.ai,
 TensorDock, Lambda Labs, CoreWeave). Astro + React islands + Tailwind, fully
@@ -158,9 +158,9 @@ cp .env.example .env
 
 `SITE_URL` controls the domain baked into `sitemap.xml`, every page's
 `<link rel="canonical">`, and OpenGraph/Twitter tags. Defaults to
-`https://gpu.kolyachaba.top` (both `astro.config.mjs` and
-`src/lib/seo.ts` — keep them in sync if you change the default). Set it
-to whatever domain you're actually deploying to:
+`https://gpucompare.cloud` (both `astro.config.mjs` and
+`src/lib/seo.ts` — keep them in sync if you change the default). Only set
+this if you're deploying to a different domain:
 
 ```bash
 SITE_URL=https://your-domain.example
@@ -197,9 +197,15 @@ docker compose up -d --build
 This repo's `docker-compose.yaml` joins the shared `frontend` network used
 by every other service in this homelab (see [repo root
 README](../README.md)) and publishes port 8090 on the host. Traefik already
-has a route configured for it at `gpu.kolyachaba.top` in
+has a route configured for it at `gpucompare.cloud` in
 `../traefik/dynamic/services.yml` — adjust or remove that if you're hosting
 elsewhere. Without Traefik, hit it directly at `http://<host>:8090`.
+
+**DNS note:** `gpucompare.cloud` is a separate domain from this homelab's
+`kolyachaba.top` — the Traefik `cloudflare` cert resolver only works for it
+once its zone is added to the same Cloudflare account the `CF_DNS_API_TOKEN`
+covers (nameservers pointed at Cloudflare, zone active). Until then the
+ACME DNS-01 challenge for this router will fail.
 
 **How the refresh loop works** (`docker/entrypoint.sh`):
 
@@ -220,7 +226,7 @@ Environment variables (set in `docker-compose.yaml`):
 |---|---|---|
 | `SYNC_INTERVAL_HOURS` | `6` | Hours between in-container price syncs |
 | `RUNPOD_API_KEY` | unset | Optional — enables the RunPod fetcher (see above) |
-| `SITE_URL` | `https://gpu.kolyachaba.top` | Domain for sitemap/canonical/OG tags, see [Site domain](#site-domain) |
+| `SITE_URL` | `https://gpucompare.cloud` | Domain for sitemap/canonical/OG tags, see [Site domain](#site-domain) |
 | `AFFILIATE_URL_*` | unset | Optional — your real referral links, see [Affiliate links](#affiliate-links) |
 
 Image layout: `node:20-alpine` + `nginx`, `docker build` bakes one initial

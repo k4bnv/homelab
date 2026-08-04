@@ -1,9 +1,9 @@
 import "@/lib/loadEnv";
 import type { SeoMeta } from "@/types";
 
-export const SITE_NAME = "GPU Cloud Compare";
+export const SITE_NAME = "GPUCompare.cloud";
 /** Override via SITE_URL env var (.env, shell export, or docker-compose.yaml) — see astro.config.mjs, which reads the same var for `site:`. */
-export const SITE_URL = process.env.SITE_URL || "https://gpu.kolyachaba.top";
+export const SITE_URL = process.env.SITE_URL || "https://gpucompare.cloud";
 export const DEFAULT_OG_IMAGE = "/og-default.svg";
 
 /** Builds the fully-qualified canonical URL for a given path. */

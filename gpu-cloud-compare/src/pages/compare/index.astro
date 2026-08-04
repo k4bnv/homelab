@@ -2,15 +2,14 @@
 import BaseLayout from "@/layouts/BaseLayout.astro";
 import Breadcrumbs from "@/components/Breadcrumbs.astro";
 import { generateGpuPairs, generateProviderPairs } from "@/utils/pseo";
-import { buildMeta } from "@/lib/seo";
+import { buildMeta, SITE_NAME } from "@/lib/seo";
 
 const gpuPairs = generateGpuPairs();
 const providerPairs = generateProviderPairs();
 
 const meta = buildMeta({
   title: "GPU & Provider Comparisons — Every Head-to-Head",
-  description:
-    "Browse every GPU-vs-GPU and provider-vs-provider comparison on GPU Cloud Compare: specs, pricing, spot rates and verdicts for renting cloud GPUs.",
+  description: `Browse every GPU-vs-GPU and provider-vs-provider comparison on ${SITE_NAME}: specs, pricing, spot rates and verdicts for renting cloud GPUs.`,
   canonicalPath: "/compare/",
 });
 

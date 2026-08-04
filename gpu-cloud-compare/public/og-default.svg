@@ -11,7 +11,7 @@
   </defs>
   <rect width="1200" height="630" fill="url(#bg)"/>
   <circle cx="1000" cy="120" r="6" fill="#39ff9c"/>
-  <text x="90" y="300" font-family="Arial, sans-serif" font-size="64" font-weight="800" fill="#ffffff">GPU Cloud Compare</text>
-  <text x="90" y="360" font-family="Arial, sans-serif" font-size="30" fill="#94a3b8">Compare H100, A100, RTX 4090 rental prices</text>
+  <text x="90" y="300" font-family="Arial, sans-serif" font-size="64" font-weight="800" fill="#ffffff">GPUCompare.cloud</text>
+  <text x="90" y="360" font-family="Arial, sans-serif" font-size="30" fill="#94a3b8">Compare H100, B200, RTX 5090 rental prices</text>
   <rect x="90" y="410" width="360" height="6" rx="3" fill="url(#accent)"/>
 </svg>
