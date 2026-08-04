@@ -63,6 +63,9 @@ export interface Provider {
   min_billing_increment: string;
   interruption_risk: "Low" | "Medium" | "High" | "None";
   payment_model: "Marketplace" | "Reserved" | "On-Demand Cloud";
+  /** "Secure" = dedicated/verified data-center hardware. "Community" = peer-to-peer/marketplace hosts. */
+  cloud_type: "Secure" | "Community";
+  has_api_cli: boolean;
 }
 
 /** Derived, computed at build time — never stored in JSON. */

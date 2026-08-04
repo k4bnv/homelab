@@ -15,7 +15,9 @@
     "regions": ["US-CA", "US-TX", "EU-NL", "EU-SE"],
     "min_billing_increment": "per second",
     "interruption_risk": "Medium",
-    "payment_model": "Marketplace"
+    "payment_model": "Marketplace",
+    "cloud_type": "Secure",
+    "has_api_cli": true
   },
   {
     "id": "runpod",
@@ -33,7 +35,9 @@
     "regions": ["US-CA", "US-TX", "EU-NL", "EU-SE"],
     "min_billing_increment": "per second",
     "interruption_risk": "Medium",
-    "payment_model": "Marketplace"
+    "payment_model": "Marketplace",
+    "cloud_type": "Secure",
+    "has_api_cli": true
   },
   {
     "id": "runpod",
@@ -51,7 +55,9 @@
     "regions": ["US-CA", "US-TX", "EU-NL", "EU-SE"],
     "min_billing_increment": "per second",
     "interruption_risk": "Medium",
-    "payment_model": "Marketplace"
+    "payment_model": "Marketplace",
+    "cloud_type": "Secure",
+    "has_api_cli": true
   },
   {
     "id": "runpod",
@@ -69,7 +75,9 @@
     "regions": ["US-CA", "US-TX", "EU-NL", "EU-SE"],
     "min_billing_increment": "per second",
     "interruption_risk": "Medium",
-    "payment_model": "Marketplace"
+    "payment_model": "Marketplace",
+    "cloud_type": "Secure",
+    "has_api_cli": true
   },
   {
     "id": "vast-ai",
@@ -87,7 +95,9 @@
     "regions": ["Global (peer-to-peer)"],
     "min_billing_increment": "per second",
     "interruption_risk": "High",
-    "payment_model": "Marketplace"
+    "payment_model": "Marketplace",
+    "cloud_type": "Community",
+    "has_api_cli": true
   },
   {
     "id": "vast-ai",
@@ -105,7 +115,9 @@
     "regions": ["Global (peer-to-peer)"],
     "min_billing_increment": "per second",
     "interruption_risk": "High",
-    "payment_model": "Marketplace"
+    "payment_model": "Marketplace",
+    "cloud_type": "Community",
+    "has_api_cli": true
   },
   {
     "id": "vast-ai",
@@ -123,7 +135,9 @@
     "regions": ["Global (peer-to-peer)"],
     "min_billing_increment": "per second",
     "interruption_risk": "High",
-    "payment_model": "Marketplace"
+    "payment_model": "Marketplace",
+    "cloud_type": "Community",
+    "has_api_cli": true
   },
   {
     "id": "vast-ai",
@@ -141,7 +155,9 @@
     "regions": ["Global (peer-to-peer)"],
     "min_billing_increment": "per second",
     "interruption_risk": "High",
-    "payment_model": "Marketplace"
+    "payment_model": "Marketplace",
+    "cloud_type": "Community",
+    "has_api_cli": true
   },
   {
     "id": "tensordock",
@@ -159,7 +175,9 @@
     "regions": ["US-East", "US-West", "EU-Central"],
     "min_billing_increment": "per minute",
     "interruption_risk": "None",
-    "payment_model": "Marketplace"
+    "payment_model": "Marketplace",
+    "cloud_type": "Community",
+    "has_api_cli": true
   },
   {
     "id": "tensordock",
@@ -177,7 +195,9 @@
     "regions": ["US-East", "US-West", "EU-Central"],
     "min_billing_increment": "per minute",
     "interruption_risk": "None",
-    "payment_model": "Marketplace"
+    "payment_model": "Marketplace",
+    "cloud_type": "Community",
+    "has_api_cli": true
   },
   {
     "id": "tensordock",
@@ -195,7 +215,9 @@
     "regions": ["US-East", "US-West", "EU-Central"],
     "min_billing_increment": "per minute",
     "interruption_risk": "None",
-    "payment_model": "Marketplace"
+    "payment_model": "Marketplace",
+    "cloud_type": "Community",
+    "has_api_cli": true
   },
   {
     "id": "lambda-labs",
@@ -213,7 +235,9 @@
     "regions": ["US-East", "US-West"],
     "min_billing_increment": "per hour",
     "interruption_risk": "None",
-    "payment_model": "On-Demand Cloud"
+    "payment_model": "On-Demand Cloud",
+    "cloud_type": "Secure",
+    "has_api_cli": true
   },
   {
     "id": "lambda-labs",
@@ -231,7 +255,9 @@
     "regions": ["US-East", "US-West"],
     "min_billing_increment": "per hour",
     "interruption_risk": "None",
-    "payment_model": "On-Demand Cloud"
+    "payment_model": "On-Demand Cloud",
+    "cloud_type": "Secure",
+    "has_api_cli": true
   },
   {
     "id": "coreweave",
@@ -249,7 +275,9 @@
     "regions": ["US-East", "US-Central", "EU-West"],
     "min_billing_increment": "per hour",
     "interruption_risk": "Low",
-    "payment_model": "Reserved"
+    "payment_model": "Reserved",
+    "cloud_type": "Secure",
+    "has_api_cli": true
   },
   {
     "id": "coreweave",
@@ -267,7 +295,9 @@
     "regions": ["US-East", "US-Central", "EU-West"],
     "min_billing_increment": "per hour",
     "interruption_risk": "Low",
-    "payment_model": "Reserved"
+    "payment_model": "Reserved",
+    "cloud_type": "Secure",
+    "has_api_cli": true
   },
   {
     "id": "coreweave",
@@ -285,6 +315,8 @@
     "regions": ["US-East", "US-Central", "EU-West"],
     "min_billing_increment": "per hour",
     "interruption_risk": "Low",
-    "payment_model": "Reserved"
+    "payment_model": "Reserved",
+    "cloud_type": "Secure",
+    "has_api_cli": true
   }
 ]

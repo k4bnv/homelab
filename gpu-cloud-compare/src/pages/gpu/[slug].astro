@@ -7,7 +7,7 @@ import CtaButton from "@/components/ui/CtaButton.astro";
 import ProviderComparisonTable from "@/components/ProviderComparisonTable";
 import GpuSeoSchema from "@/components/GpuSeoSchema";
 import { getAllGpus, getGpuById, getComputedOffersForGpu, formatUsd } from "@/lib/data";
-import { canonicalPairSlug } from "@/lib/comparisons";
+import { areGpusComparable, canonicalPairSlug } from "@/utils/pseo";
 import { buildMeta } from "@/lib/seo";
 import { buildGpuFaq } from "@/lib/faq";
 
@@ -35,9 +35,10 @@ const breadcrumbs = [
   { name: gpu.name, path: `/gpu/${gpu.id}/` },
 ];
 
-// Up to 3 alternative cards for the "Compare with alternatives" block.
+// Up to 3 alternative cards for the "Compare with alternatives" block —
+// only GPUs that actually have a generated /compare/ page with this one.
 const alternatives = getAllGpus()
-  .filter((g) => g.id !== gpu.id)
+  .filter((g) => areGpusComparable(gpu, g))
   .slice(0, 3);
 
 const meta = buildMeta({

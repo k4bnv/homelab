@@ -40,11 +40,35 @@ production, and replace every `?ref=AFFILIATE_ID` with real affiliate links.
 | Route | Generation | Purpose |
 |---|---|---|
 | `/` | static | Filterable/sortable comparison table of every GPU |
-| `/gpu/[slug]/` | `getStaticPaths` over `gpus.json` | Per-GPU provider comparison + FAQ (Product/AggregateRating/FAQPage schema) |
-| `/compare/[a]-vs-[b]/` | `getStaticPaths` over all GPU pairs + all provider pairs | Head-to-head spec/price table + verdict |
+| `/gpu/[slug]/` | `getStaticPaths` over `gpus.json` | Per-GPU provider comparison, cost calculator + FAQ (Product/AggregateRating/FAQPage schema) |
+| `/compare/[a]-vs-[b]/` | `getStaticPaths` over comparable GPU pairs + all provider pairs (`src/utils/pseo.ts`) | AI Verdict, side-by-side spec table, pros/cons, cost efficiency, FAQ |
+| `/compare/` | static | Hub page linking every generated comparison |
 | `/best-gpu-for/[use-case]/` | `getStaticPaths` over `use-cases.json` | Ranked GPU picks for a task (LLM training, ComfyUI, …) |
 | `/robots.txt` | endpoint | Points crawlers at the sitemap |
 | `/sitemap-index.xml` | `@astrojs/sitemap` | Auto-generated at build time |
+
+## Programmatic comparisons (`/compare/`)
+
+`src/utils/pseo.ts` is the single source of truth for what `/compare/`
+pages exist:
+
+- `generateGpuPairs()` — every GPU pair worth comparing (`areGpusComparable`
+  filters to same-vendor cards within a ~4x VRAM tier or with overlapping
+  target tasks, so the catalog won't generate nonsense pairs as it grows).
+- `generateProviderPairs()` — every provider pair (no filter; any two
+  providers are worth comparing).
+- `canonicalPairSlug(idA, idB)` — always alphabetically orders the two ids,
+  so `h100-vs-a100` and `a100-vs-h100` can never both exist as separate
+  pages. Every place that links to a `/compare/` page (footer, GPU detail
+  page, the compare page's own "related comparisons") goes through this.
+- `resolveComparison(slug)` — parses `[a]-vs-[b]` back into a typed GPU or
+  Provider pair for the page to render; `isValidPairSlug()` wraps it as a
+  boolean check.
+
+`src/lib/compareContent.ts` builds all the templated copy for a pair (side-
+by-side table rows with a computed row "winner", the AI Verdict one-liner,
+pros/cons, and 3 FAQ items) purely from the GPU/Provider records — no
+hand-written copy per page.
 
 ## SEO
 
@@ -81,7 +105,7 @@ npm run preview     # serve the production build locally
   `/compare/*` pair page regenerate automatically.
 - **Add a provider:** append offer rows to `providers.json` with a new
   `slug`; provider-vs-provider comparison pages are generated for every pair
-  automatically by `src/lib/comparisons.ts`.
+  automatically by `src/utils/pseo.ts`.
 - **Add a use case:** append to `use-cases.json` with a `recommended_gpu_ids`
   list; `/best-gpu-for/[slug]` and its FAQ are generated automatically.
 - **Real pricing data:** replace the static JSON read in `src/lib/data.ts`

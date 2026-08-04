@@ -96,6 +96,35 @@ export function getComputedOffersForProvider(slug: string): ComputedOffer[] {
     .sort((a, b) => a.price_per_vram_hr - b.price_per_vram_hr);
 }
 
+/** Average on-demand $/hr for a GPU across every provider that rents it. Used on /compare pages. */
+export function getAveragePriceForGpu(gpuId: string): number {
+  const offers = getOffersForGpu(gpuId);
+  if (offers.length === 0) return 0;
+  return offers.reduce((sum, o) => sum + o.price_on_demand, 0) / offers.length;
+}
+
+/** Average spot $/hr for a GPU across providers that offer spot pricing for it, or null if none do. */
+export function getAverageSpotPriceForGpu(gpuId: string): number | null {
+  const spotOffers = getOffersForGpu(gpuId).filter(
+    (o): o is Provider & { price_spot: number } => o.price_spot !== null
+  );
+  if (spotOffers.length === 0) return null;
+  return spotOffers.reduce((sum, o) => sum + o.price_spot, 0) / spotOffers.length;
+}
+
+/** Average $/GB VRAM/hr for a GPU, based on its average on-demand price. */
+export function getAveragePricePerVramHr(gpu: GPU): number {
+  const avgPrice = getAveragePriceForGpu(gpu.id);
+  return gpu.vram_gb > 0 ? avgPrice / gpu.vram_gb : 0;
+}
+
+/** Cheapest on-demand $/hr a provider charges across every GPU it offers — its "entry price". */
+export function getMinPriceForProvider(slug: string): number {
+  const offers = getOffersForProvider(slug);
+  if (offers.length === 0) return 0;
+  return Math.min(...offers.map((o) => o.price_on_demand));
+}
+
 export function getUseCaseBySlug(slug: string): UseCase | undefined {
   return useCases.find((u) => u.slug === slug);
 }
