@@ -1,0 +1,84 @@
+name: GPU Price Sync
+
+# Keeps gpu-cloud-compare/src/data/*.json fresh by polling provider pricing
+# APIs, then commits the result straight to main so the next static build
+# picks it up. See gpu-cloud-compare/scripts/fetch-prices.ts for the sync
+# logic and gpu-cloud-compare/README.md for the required secrets.
+
+on:
+  schedule:
+    # Every 6 hours. Cron is UTC; GitHub may delay scheduled runs by a few
+    # minutes under load, which is fine for a price-sync job.
+    - cron: "0 */6 * * *"
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+# Never run two syncs concurrently — they'd race to commit/push.
+concurrency:
+  group: gpu-price-sync
+  cancel-in-progress: false
+
+defaults:
+  run:
+    working-directory: gpu-cloud-compare
+
+jobs:
+  sync-prices:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout main
+        uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+          cache-dependency-path: gpu-cloud-compare/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Sync GPU cloud prices
+        run: npm run sync-prices
+        env:
+          # Optional — the RunPod fetcher no-ops (not fails) without this.
+          RUNPOD_API_KEY: ${{ secrets.RUNPOD_API_KEY }}
+
+      - name: Check for data changes
+        id: diff
+        run: |
+          if git diff --quiet -- src/data/gpus.json src/data/providers.json; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Commit & push updated prices
+        if: steps.diff.outputs.changed == 'true'
+        run: |
+          git config user.name "gpu-price-bot"
+          git config user.email "actions@users.noreply.github.com"
+          # actions/checkout leaves HEAD detached at the ref's commit; put it
+          # on a real local branch so `git push` has something to push.
+          git checkout -B main
+          git add src/data/gpus.json src/data/providers.json
+          git commit -m "chore(data): sync GPU cloud prices [skip ci]"
+          git pull --rebase origin main
+          git push origin main
+
+      - name: Trigger deploy hook (Vercel / Netlify / Cloudflare Pages)
+        if: steps.diff.outputs.changed == 'true'
+        env:
+          DEPLOY_HOOK_URL: ${{ secrets.DEPLOY_HOOK_URL }}
+        run: |
+          if [ -n "$DEPLOY_HOOK_URL" ]; then
+            curl -fsS -X POST "$DEPLOY_HOOK_URL"
+          else
+            echo "No DEPLOY_HOOK_URL secret configured — skipping deploy trigger. The host's own git-push auto-deploy (if any) will still pick up the commit above."
+          fi

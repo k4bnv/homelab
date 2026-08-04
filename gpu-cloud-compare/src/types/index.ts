@@ -19,6 +19,22 @@ export type TargetTask =
   | "Computer Vision"
   | "Scientific Computing";
 
+/**
+ * Aggregated live-market snapshot written by `scripts/fetch-prices.ts`.
+ * Denormalized onto the GPU record so pages can show a "from $X/hr, synced
+ * Ny ago" figure without recomputing across `providers.json` — the
+ * per-provider numbers in `providers.json` remain the source of truth,
+ * this is a cache of their aggregate.
+ */
+export interface GpuMarketSnapshot {
+  min_on_demand_price: number;
+  min_spot_price: number | null;
+  /** Sum of live-listed instances across providers that reported a count, or null if none did. */
+  available_count: number | null;
+  /** ISO-8601 timestamp of the sync run that produced this snapshot. */
+  last_updated: string;
+}
+
 export interface GPU {
   /** Stable slug used in URLs and as the FK from Provider.gpu_id, e.g. "nvidia-h100" */
   id: string;
@@ -42,6 +58,8 @@ export interface GPU {
   description: string;
   /** 1-3 short bullet points rendered on the GPU detail page */
   highlights: string[];
+  /** Present once `npm run sync-prices` has run at least once; absent on the hand-seeded fixtures. */
+  market?: GpuMarketSnapshot;
 }
 
 export interface Provider {
@@ -66,6 +84,10 @@ export interface Provider {
   /** "Secure" = dedicated/verified data-center hardware. "Community" = peer-to-peer/marketplace hosts. */
   cloud_type: "Secure" | "Community";
   has_api_cli: boolean;
+  /** Live-listed instance count for this (provider, GPU) pair, when the source API reports one. */
+  available_count?: number;
+  /** ISO-8601 timestamp of the last successful live-price sync for this row; absent = hand-seeded fixture. */
+  last_updated?: string;
 }
 
 /** Derived, computed at build time — never stored in JSON. */

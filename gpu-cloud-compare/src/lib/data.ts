@@ -51,6 +51,23 @@ export function formatUsd(value: number, digits = 2): string {
 }
 
 /**
+ * Coarse "Xh ago" label for a `GpuMarketSnapshot.last_updated` timestamp.
+ * This is a static site — the string is computed once at build time, not
+ * live in the browser, so it reflects "time since the last sync + deploy",
+ * not real wall-clock time for the visitor.
+ */
+export function formatRelativeTime(iso: string, now: Date = new Date()): string {
+  const diffMs = now.getTime() - new Date(iso).getTime();
+  const diffMin = Math.round(diffMs / 60_000);
+  if (diffMin < 1) return "just now";
+  if (diffMin < 60) return `${diffMin}m ago`;
+  const diffHr = Math.round(diffMin / 60);
+  if (diffHr < 24) return `${diffHr}h ago`;
+  const diffDay = Math.round(diffHr / 24);
+  return `${diffDay}d ago`;
+}
+
+/**
  * Every (provider, gpu) offer joined with its GPU record and enriched with
  * the normalized $/VRAM/hr metric + a `is_best_price` flag (lowest
  * on-demand price for that specific GPU across all providers).
